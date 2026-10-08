@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Estrella de 5 puntas con contornos concéntricos (estilo P5) -->
+    <symbol id="ns" viewBox="0 0 100 100">
+      <g fill="none" stroke="#e50914" stroke-width="5" stroke-linejoin="round">
+        <path d="M50 3 L61 38 L98 38 L68 59 L79 95 L50 73 L21 95 L32 59 L2 38 L39 38 Z"/>
+        <path d="M50 3 L61 38 L98 38 L68 59 L79 95 L50 73 L21 95 L32 59 L2 38 L39 38 Z"
+              transform="translate(50 50) scale(0.64) translate(-50 -50)"/>
+        <path d="M50 3 L61 38 L98 38 L68 59 L79 95 L50 73 L21 95 L32 59 L2 38 L39 38 Z"
+              transform="translate(50 50) scale(0.32) translate(-50 -50)"/>
+      </g>
+      <path d="M50 3 L61 38 L98 38 L68 59 L79 95 L50 73 L21 95 L32 59 L2 38 L39 38 Z"
+            fill="#e50914" transform="translate(50 50) scale(0.15) translate(-50 -50)"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="1600" fill="#0a0a0a"/>
+
+  <!-- Campo denso de estrellas anidadas, superpuestas y de tamaños variados -->
+  <g>
+    <use href="#ns" x="-160" y="-160" width="780" height="780" transform="rotate(-10 230 230)"/>
+    <use href="#ns" x="640" y="-110" width="640" height="640" transform="rotate(16 960 210)"/>
+    <use href="#ns" x="300" y="480" width="720" height="720" transform="rotate(-6 660 840)" opacity="0.9"/>
+    <use href="#ns" x="-210" y="880" width="700" height="700" transform="rotate(12 140 1230)"/>
+    <use href="#ns" x="700" y="940" width="740" height="740" transform="rotate(-14 1070 1310)" opacity="0.9"/>
+
+    <use href="#ns" x="860" y="400" width="430" height="430" transform="rotate(22 1075 615)" opacity="0.85"/>
+    <use href="#ns" x="100" y="240" width="380" height="380" transform="rotate(-20 290 430)" opacity="0.85"/>
+    <use href="#ns" x="500" y="1140" width="440" height="440" transform="rotate(8 720 1360)" opacity="0.85"/>
+    <use href="#ns" x="-80" y="560" width="360" height="360" transform="rotate(18 100 740)" opacity="0.8"/>
+    <use href="#ns" x="900" y="1280" width="420" height="420" transform="rotate(-24 1110 1490)" opacity="0.8"/>
+
+    <use href="#ns" x="470" y="60" width="210" height="210" transform="rotate(10 575 165)" opacity="0.75"/>
+    <use href="#ns" x="1010" y="120" width="190" height="190" transform="rotate(-16 1105 215)" opacity="0.75"/>
+    <use href="#ns" x="250" y="980" width="230" height="230" transform="rotate(26 365 1095)" opacity="0.75"/>
+    <use href="#ns" x="40" y="1360" width="250" height="250" transform="rotate(-12 165 1485)" opacity="0.7"/>
+    <use href="#ns" x="1040" y="840" width="200" height="200" transform="rotate(14 1140 940)" opacity="0.7"/>
+    <use href="#ns" x="420" y="400" width="170" height="170" transform="rotate(-28 505 485)" opacity="0.7"/>
+  </g>
+
+  <!-- Velo oscuro para mantener legible el contenido encima -->
+  <rect width="1200" height="1600" fill="#0a0a0a" opacity="0.32"/>
+</svg>

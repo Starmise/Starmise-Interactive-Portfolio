@@ -1,0 +1,18 @@
+# Notas internas
+/docs
+
+# Dependencias (se restauran con: npm install)
+/node_modules
+
+# Salida de build y caché
+/dist
+/.parcel-cache
+/.vite
+
+# Logs y temporales
+*.log
+npm-debug.log*
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db

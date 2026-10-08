@@ -1,0 +1,65 @@
+{
+  "name": "Luis Rosaldo",
+  "alias": "Starmise",
+  "title": "Game Developer",
+  "subtitle": "Persona del montaje y la luz",
+  "logo": "img/BMI.png",
+  "about": [
+    "Me describo como una persona responsable, honesta y con mucho entusiasmo e interés por aprender nuevas cosas y pasión por desarrollar videojuegos. Siempre estoy dispuesto a aceptar nuevos desafíos que me permitan desarrollar nuevas habilidades a nivel profesional y personal.",
+    "Actualmente soy parte del nuevo estudio de videojuegos Little Blossom Studio, con quienes espero seguir creando nuevos proyectos que destaquen y nos ayuden a crecer en la industria."
+  ],
+  "studio": {
+    "name": "Little Blossom Studio",
+    "icon": "img/Blossom.png"
+  },
+  "demoReel": {
+    "title": "DemoReel de Luis Rosaldo",
+    "youtubeId": "shAIoI3trRw",
+    "embedUrl": "https://www.youtube.com/embed/shAIoI3trRw"
+  },
+  "skills": [
+    "Manejo de Unity",
+    "Unreal Engine con Blueprints",
+    "Desarrollo en C++",
+    "Modelado básico en Blender",
+    "Manejo de Photoshop"
+  ],
+  "whatIDo": [
+    {
+      "title": "Game Developer",
+      "image": "img/Monster.png",
+      "text": "He trabajado en varios proyectos a lo largo de mi carrera universitaria, también he desarrollado varias herramientas de gráficas computacionales usando SFML y DirectX 11. También he participado en el desarrollo de simulaciones con físicas realistas, como un sistema de gravedad en un sistema solar, una simulación de flotabilidad de objetos complejos y un sistema de caminata mediante animación procedural."
+    },
+    {
+      "title": "Photoshop Montages",
+      "image": "img/BMI.png",
+      "text": "Uno de mis hobbys es crear montages en Photoshop inspirándome en mis canciones y artistas favoritos. Hoy en día cuento con una colección completa de ediciones de todas las canciones de los 4 álbumes de la banda de rock Starset."
+    },
+    {
+      "title": "Blender Lighting & Scene",
+      "image": "img/GTFA2.png",
+      "text": "Tengo los conocimientos y la capacidad para armar escenas en Blender mediante el uso de diferentes modelos, conocimientos de fotografía aplicada al armado de la escena final, y uso de diferentes técnicas de iluminación para crear escenarios llamativos."
+    }
+  ],
+  "trivia": {
+    "image": "img/OpcNature1.png",
+    "items": [
+      "Me encanta escuchar música de todo tipo en todo momento: cuando trabajo, cuando estudio, cuando juego, etc.",
+      "Mi meta es llegar a vivir como un Game Developer.",
+      "Mis videojuegos favoritos son Fallout 3, Persona 5: Royal y Marvel vs Capcom 2."
+    ]
+  },
+  "gallery": [
+    "img/GalleryExample.png",
+    "img/GalleryExample (2).png",
+    "img/GalleryExample (3).png"
+  ],
+  "contact": [
+    { "label": "Correo electrónico", "type": "email", "url": "mailto:lu1sargv427@gmail.com" },
+    { "label": "LinkedIn", "type": "linkedin", "url": "https://www.linkedin.com/in/luis-angel-rosaldo-gonz%C3%A1lez-4a85a2292/" },
+    { "label": "Itch.io", "type": "itchio", "url": "https://skrbasword.itch.io/" },
+    { "label": "Instagram", "type": "instagram", "url": "https://www.instagram.com/l_starmise?igsh=MXRtc3FkYWhvMG1tcg%3D%3D&utm_source=qr" },
+    { "label": "Redes Sociales de Starmise", "type": "linktree", "url": "https://beacons.ai/starmise" }
+  ],
+  "classicSite": "https://starmise.github.io/About-Me-Website/"
+}
