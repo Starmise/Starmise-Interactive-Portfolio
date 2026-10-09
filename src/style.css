@@ -1,0 +1,48 @@
+:root {
+  --bg: #0b0b0d;
+  --text: #d8d2c4;
+  --muted: #8a8578;
+  --accent: #a3172c;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  overflow: hidden;
+}
+
+#app, #app canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#hud {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+#hud p { margin: 0; color: var(--muted); }
+
+#hud a {
+  pointer-events: auto;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+}

@@ -65,15 +65,18 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 ### Fase 0 — Preparación ✅
 - [x] Migrar `projects.json`, `profile.json` e imágenes desde `About-Me-Website`.
 - [x] `CLAUDE.md`, `.gitignore`, `.gitattributes`.
-- [x] Añadir el modelo del personaje (`src/ps1psx-character-basemesh-male/`).
+- [x] Añadir el modelo del personaje (ahora en `art/character/`).
 - [x] Generar plantilla de UVs para pintar la textura del personaje.
 
 ### Fase 1 — Base del proyecto
-- [ ] `package.json` con Vite + Three.js; `npm run dev` / `npm run build` funcionando.
-- [ ] Reorganizar carpetas según §7 (mover `src/img` → `public/img`, el FBX y fuentes → `art/`).
-- [ ] Workflow `.github/workflows/deploy.yml` (adaptado del original, con Vite y `dist/`).
-- [ ] **Personaje:** textura pintada + exportado a `public/models/player.glb` (ver §5).
-- [ ] Escena mínima: cargar `player.glb`, reproducir la caminata y verla en el navegador.
+- [x] `package.json` con Vite + Three.js; `npm run dev` / `npm run build` funcionando.
+- [x] Reorganizar carpetas según §7 (mover `src/img` → `public/img`, el FBX y fuentes → `art/character/`).
+- [x] Workflow `.github/workflows/deploy.yml` (adaptado del original, con Vite y `dist/`).
+- [ ] **Personaje (TODO):** textura pintada + exportado a `public/models/player.glb` (ver §5).
+  - [x] Provisional: `player.glb` convertido del FBX (escala 0.01, clip renombrado a `Walk`) con
+        `art/character/PSX_Char_Male_Placeholder_256.png`, pintada a partir de la foto de referencia
+        (chaqueta acolchada negra con franjas roja y crema, pantalón negro, tenis blancos).
+- [x] Escena mínima: cargar `player.glb`, reproducir la caminata y verla en el navegador.
 
 ### Fase 2 — Prototipo vertical (una sala) ← hito para validar la sensación
 - [ ] Pipeline de render PS1 (§6.1): render a baja resolución, *vertex snapping*, texturas sin filtrado, mapeo afín, dithering, niebla.
@@ -125,8 +128,8 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 
 ### Pasos
 
-1. **Textura.** Pintar sobre `src/ps1psx-character-basemesh-male/textures/PSX_Char_Male_UV_1024.png`
-   (capa nueva encima de la plantilla). Exportar la final y reducir a **128×128 o 256×256** con
+1. **Textura.** Pintar sobre `art/character/PSX_Char_Male_UV_1024.png` (capa nueva encima de la
+   plantilla). `PSX_Char_Male_Placeholder_1024.png` sirve como capa base ya alineada a las UVs. Exportar la final y reducir a **128×128 o 256×256** con
    *nearest neighbor*. Opcional, para mayor autenticidad: reducir a ≤ 256 colores. Guardar
    como `PSX_Char_Male_Diffuse.png`.
 2. **Blender.** Importar el FBX → en `M_Char`, nodo *Image Texture* con la textura e
@@ -207,8 +210,12 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 ## 9. Preguntas abiertas
 - Nombre del "juego" / título de la pantalla inicial.
 - Ambientación: ¿mansión clásica, oficina/estudio, instalación de investigación?
-- ¿El personaje representa a Starmise (colores/ropa propia)?
+- ~~¿El personaje representa a Starmise?~~ Sí: ropa de la foto de referencia (chaqueta acolchada con franjas roja y crema).
 - ¿Música propia o CC0?
 
 ## 10. Registro de decisiones
+- **2026-10-08** — Fase 1: Vite 8 + Three.js r186. `player.glb` provisional generado del FBX para
+  no bloquear la escena; el código (`src/player/loadPlayer.js`) quita la traslación horizontal del
+  root y espera clips con los nombres de §5.4, así que el GLB final de Blender lo reemplaza sin cambios.
+  Workflow con Node 22. El personaje representará a Starmise (referencia: foto en pose T).
 - **2026-10-08** — Se elige tercera persona con cámaras fijas, Three.js vanilla, Vite (propuesto), salas en Blender con convención de nombres. Personaje: basemesh PSX con caminata de Mixamo.
