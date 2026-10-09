@@ -23,23 +23,24 @@ Todo el contenido y la comunicación con el usuario son **en español**.
   `.git/index.lock` si no hay permiso de borrado en la carpeta; si pasa, apartarlo
   (`mv .git/index.lock .git/stale-index-lock`) o pedir permiso de borrado.
 
+## Plan del proyecto → `PLAN.md`
+
+**Leer `PLAN.md` antes de trabajar.** Contiene la visión (portafolio jugable estilo
+*survival horror* de PS1), las decisiones, las fases con casillas, el pipeline del personaje
+y el diseño técnico. Al terminar tareas, marcar sus casillas y anotar cambios de rumbo en su
+"Registro de decisiones".
+
+Resumen de decisiones: tercera persona con cámaras fijas · Three.js vanilla · Vite
+(`base: './'`) · salas modeladas en Blender con convención de nombres (`COL_`, `CAM_`,
+`TRG_CAM_`, `INT_<projectId>`, `DOOR_`, `SPAWN_`) · todo el texto sale de `src/data/` ·
+GitHub Pages vía Actions (el workflow se añade cuando exista `npm run build`, si no el push falla).
+No usar assets, logos, fuentes ni sonidos de Capcom/Resident Evil: solo se evoca el estilo.
+
 ## Estado actual
 
-Solo están migrados los **datos y las imágenes**; aún no hay código de la escena 3D ni
-`package.json`. Concepto previsto: una escena/sala 3D donde cada objeto (consola, TV,
-cartuchos…) abre un proyecto leído desde `projects.json`, más un enlace a la versión clásica
-para accesibilidad y móviles lentos.
-
-- **Stack 3D:** pendiente de decidir — **Three.js** (JS vanilla + bundler, como el original
-  usaba Parcel 2) o **React Three Fiber**. Al decidirlo, actualizar esta sección y "Comandos".
-- **Despliegue:** pendiente. Plan: GitHub Pages vía GitHub Actions, adaptando el
-  `deploy.yml` del repo original (build → `dist/` → `actions/upload-pages-artifact` +
-  `actions/deploy-pages`; *Settings → Pages → Source = GitHub Actions*). Como el sitio
-  vivirá en el subpath `/Starmise-Interactive-Portfolio/`, **las rutas deben ser relativas**
-  (con Parcel `--public-url ./`; con Vite `base: './'`). No añadir el workflow hasta que
-  exista un `npm run build` que funcione, o el primer push fallará.
-- Idea: renombrar este repo a `Starmise.github.io` para servirlo en
-  `https://starmise.github.io/` (el original seguiría en `/About-Me-Website/`).
+Fase 0 completada (datos, imágenes, modelo del personaje y plantilla UV). Siguiente: Fase 1
+(Vite + Three.js, reorganizar carpetas, textura y GLB del personaje). Aún no hay código ni
+`package.json`.
 
 ## Estructura
 
@@ -50,11 +51,14 @@ src/
     profile.json   Bio, estudio, DemoReel, habilidades, "qué hago", curiosidades, galería, contacto
     README.md      Esquema de ambos JSON y script de validación
   img/             Portadas e imágenes (33 archivos, ~33 MB)
+  ps1psx-character-basemesh-male/
+    source/PSX_Char_Male_Base.fbx      Personaje PS1 (19 huesos, caminata de Mixamo, sin textura)
+    textures/PSX_Char_Male_UV_1024.png Plantilla de UVs para pintar la textura
 CLAUDE.md          Este archivo
+PLAN.md            Plan del proyecto (fases, decisiones, diseño técnico)
 ```
 
-Si al elegir el bundler los assets deben moverse (p. ej. a `public/` con Vite), actualizar
-las rutas de los JSON o el mapeo correspondiente, y esta sección.
+La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
 
 ## Notas y trampas conocidas
 
