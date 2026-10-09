@@ -26,7 +26,7 @@ export class Hud {
     this.promptTarget = target;
     this.prompt.hidden = !target;
     if (!target) return;
-    this.promptVerb.textContent = target.kind === 'door' ? 'Abrir' : 'Examinar';
+    this.promptVerb.textContent = target.verb ?? (target.kind === 'door' ? 'Abrir' : 'Examinar');
     this.promptLabel.textContent = target.label ?? target.id;
   }
 

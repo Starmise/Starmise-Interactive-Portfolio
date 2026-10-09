@@ -2,37 +2,49 @@
   {
     "id": "hall",
     "name": "Hall principal",
-    "description": "Vitrina con los proyectos destacados.",
-    "model": "models/rooms/test_room.glb"
+    "description": "Vitrina con los proyectos destacados, el diario y el DemoReel.",
+    "model": "models/rooms/hall.glb",
+    "fog": [8, 22],
+    "ambient": 0.85
   },
   {
     "id": "unreal-wing",
     "name": "Ala Unreal",
-    "description": "Proyectos hechos en Unreal Engine.",
-    "model": null
+    "description": "Galería de proyectos hechos en Unreal Engine.",
+    "model": "models/rooms/unreal_wing.glb",
+    "fog": [7, 20],
+    "ambient": 1.0
   },
   {
     "id": "unity-wing",
     "name": "Ala Unity",
-    "description": "Proyectos hechos en Unity.",
-    "model": null
+    "description": "Estudio con los proyectos hechos en Unity.",
+    "model": "models/rooms/unity_wing.glb",
+    "fog": [6, 17],
+    "ambient": 1.15
   },
   {
     "id": "lab",
     "name": "Laboratorio",
     "description": "Motores y gráficos en C++.",
-    "model": null
+    "model": "models/rooms/lab.glb",
+    "fog": [5, 15],
+    "ambient": 1.2
   },
   {
     "id": "game-room",
     "name": "Sala de juegos",
-    "description": "Game jams y prototipos.",
-    "model": null
+    "description": "Game jams y prototipos, en máquinas arcade.",
+    "model": "models/rooms/game_room.glb",
+    "fog": [5, 15],
+    "ambient": 0.9
   },
   {
     "id": "save-room",
     "name": "Sala de guardado",
     "description": "Contacto y curiosidades.",
-    "model": "models/rooms/save_room.glb"
+    "model": "models/rooms/save_room.glb",
+    "fog": [5, 12],
+    "ambient": 0.8
   }
 ]

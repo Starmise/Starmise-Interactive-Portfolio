@@ -3,14 +3,14 @@
   "alias": "Starmise",
   "title": "Game Developer",
   "subtitle": "Persona del montaje y la luz",
-  "logo": "img/BMI.png",
+  "logo": "img/BMI.webp",
   "about": [
     "Me describo como una persona responsable, honesta y con mucho entusiasmo e interés por aprender nuevas cosas y pasión por desarrollar videojuegos. Siempre estoy dispuesto a aceptar nuevos desafíos que me permitan desarrollar nuevas habilidades a nivel profesional y personal.",
     "Actualmente soy parte del nuevo estudio de videojuegos Little Blossom Studio, con quienes espero seguir creando nuevos proyectos que destaquen y nos ayuden a crecer en la industria."
   ],
   "studio": {
     "name": "Little Blossom Studio",
-    "icon": "img/Blossom.png"
+    "icon": "img/Blossom.webp"
   },
   "demoReel": {
     "title": "DemoReel de Luis Rosaldo",
@@ -27,22 +27,22 @@
   "whatIDo": [
     {
       "title": "Game Developer",
-      "image": "img/Monster.png",
+      "image": "img/Monster.webp",
       "text": "He trabajado en varios proyectos a lo largo de mi carrera universitaria, también he desarrollado varias herramientas de gráficas computacionales usando SFML y DirectX 11. También he participado en el desarrollo de simulaciones con físicas realistas, como un sistema de gravedad en un sistema solar, una simulación de flotabilidad de objetos complejos y un sistema de caminata mediante animación procedural."
     },
     {
       "title": "Photoshop Montages",
-      "image": "img/BMI.png",
+      "image": "img/BMI.webp",
       "text": "Uno de mis hobbys es crear montages en Photoshop inspirándome en mis canciones y artistas favoritos. Hoy en día cuento con una colección completa de ediciones de todas las canciones de los 4 álbumes de la banda de rock Starset."
     },
     {
       "title": "Blender Lighting & Scene",
-      "image": "img/GTFA2.png",
+      "image": "img/GTFA2.webp",
       "text": "Tengo los conocimientos y la capacidad para armar escenas en Blender mediante el uso de diferentes modelos, conocimientos de fotografía aplicada al armado de la escena final, y uso de diferentes técnicas de iluminación para crear escenarios llamativos."
     }
   ],
   "trivia": {
-    "image": "img/OpcNature1.png",
+    "image": "img/OpcNature1.webp",
     "items": [
       "Me encanta escuchar música de todo tipo en todo momento: cuando trabajo, cuando estudio, cuando juego, etc.",
       "Mi meta es llegar a vivir como un Game Developer.",
@@ -50,9 +50,9 @@
     ]
   },
   "gallery": [
-    "img/GalleryExample.png",
-    "img/GalleryExample (2).png",
-    "img/GalleryExample (3).png"
+    "img/GalleryExample.webp",
+    "img/GalleryExample (2).webp",
+    "img/GalleryExample (3).webp"
   ],
   "contact": [
     { "label": "Correo electrónico", "type": "email", "url": "mailto:lu1sargv427@gmail.com" },

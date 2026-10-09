@@ -85,7 +85,7 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 - [x] Colisiones contra la geometría `COL_*` de la sala (cápsula + `three-mesh-bvh`).
 - [x] 3 cámaras fijas que cambian con volúmenes `TRG_CAM_*` (con histéresis por solapamiento).
 - [x] Objetos `INT_<id>` que abren la ficha del proyecto real desde `projects.json` (los 4 destacados).
-- [x] Sala de prueba hecha en Blender (cajas texturizadas): `art/rooms/build_test_room.py` → `test_room.blend` + `public/models/rooms/test_room.glb`.
+- [x] Sala de prueba hecha en Blender (cajas texturizadas): `art/rooms/build_test_room.py` → `test_room.blend` + `public/models/rooms/test_room.glb` (reemplazados en la Fase 4 por `build_rooms.py`).
 - [x] **Revisión con el usuario:** aprobada el 2026-10-09 (se pasó a la Fase 3 sin ajustes).
 
 ### Fase 3 — Sistemas
@@ -99,11 +99,19 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 
 ### Fase 4 — Contenido
 - [x] Añadir `room` a `projects.json` y crear `rooms.json` (adelantado en la Fase 3).
-- [ ] Modelar y texturizar: Hall, Ala Unreal, Ala Unity, Laboratorio, Sala de juegos, Save room.
-- [ ] Representación de cada proyecto en su sala (objeto + textura con su portada en baja resolución).
-- [ ] TV con DemoReel en el Hall (miniatura PS1 → abre el video de YouTube en la UI).
-- [ ] Generar versiones optimizadas de imágenes (miniaturas 128–256 px para texturas; WebP para fichas).
-- [ ] Reemplazar las imágenes de galería de muestra (`GalleryExample*.png`).
+- [x] Modelar y texturizar: Hall, Ala Unreal, Ala Unity, Laboratorio, Sala de juegos, Save room
+      (`art/rooms/build_rooms.py` → `art/rooms/<sala>.blend` + `public/models/rooms/<sala>.glb`).
+- [x] Representación de cada proyecto en su sala (objeto + textura con su portada en baja resolución):
+      pedestales (vitrina del Hall), cuadros (Ala Unreal), computadoras CRT (Ala Unity y Laboratorio),
+      máquinas arcade (Sala de juegos).
+- [x] TV con DemoReel en el Hall (`INT_demoreel`: pantalla animada → ficha con el video de YouTube,
+      que solo se incrusta al pulsar "Reproducir").
+- [x] Generar versiones optimizadas de imágenes (`npm run images`: WebP ≤1280 px para fichas y
+      miniaturas ≤256 px para texturas; los originales pasan a `art/img/`). 33 MB → 1.2 MB.
+- [ ] **(TODO del usuario)** Reemplazar las imágenes de galería de muestra (`GalleryExample*`):
+      copiar las reales a `art/img/`, correr `npm run images` y actualizar `profile.gallery`.
+      (Aún no se muestran en ninguna parte del juego.)
+- [ ] Revisión con el usuario: recorrer las seis salas y ajustar cámaras, luces y distribución.
 
 ### Fase 5 — Accesibilidad, móvil y rendimiento
 - [ ] **Modo lista**: vista HTML accesible con todos los proyectos (misma app, mismos datos).
@@ -167,6 +175,11 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 | `INT_<id>` | Objeto examinable ligado a un proyecto, o a un documento del perfil: `about`, `contact`, `trivia`. Un hijo con el material `MAT_Cover` recibe la portada (reducida a 128×96 en el navegador). |
 | `DOOR_<roomId>` | Puerta hacia otra sala. |
 | `SPAWN_<fromRoomId>` | Punto de aparición al entrar desde esa sala (Empty; su flecha +Z indica hacia dónde mira). `SPAWN_default` para el inicio. |
+| `Room_Shell*` | Piso, muros y techo. El juego los dibuja con *polygon offset* (un poco "detrás") para que lo pegado a ellos —cuadros, ventanas, alfombras— no parpadee con el *vertex snapping*. |
+
+`INT_<id>` también acepta los documentos del perfil `about`, `contact`, `trivia` y `demoreel` (este
+último convierte su `MAT_Cover` en una pantalla de TV animada). Cada sala de `rooms.json` define su
+niebla (`fog: [cerca, lejos]`) y la intensidad de la luz ambiente (`ambient`).
 
 Las luces puntuales de Blender se exportan con la sala (modo de iluminación **RAW**: la potencia en W
 es directamente la intensidad en Three.js). Exportar con: GLB, +Y Up, Cameras y Punctual Lights activados.
@@ -175,6 +188,20 @@ es directamente la intensidad en Three.js). Exportar con: GLB, +Y Up, Cameras y 
 - Animación con `AnimationMixer` y *crossfade* entre `Idle`/`Walk`/`Run`.
 - Colisión: cápsula contra `COL_*` usando `three-mesh-bvh` (o AABBs si basta).
 - Al cambiar de cámara, mantener la dirección de input hasta soltar la tecla (evita el "giro brusco" típico de cámaras fijas).
+
+### 6.3b Salas actuales (Fase 4)
+Todas se generan con `art/rooms/build_rooms.py` (texturas procedurales de 64×64 a 15 bits).
+
+| Sala | GLB | Contenido | Puerta al Hall |
+|------|-----|-----------|----------------|
+| Hall principal | `hall.glb` | 12×10 m: vitrina con los 4 destacados, escalera y vitral, diario (bio), TV (DemoReel), 4 cámaras | — |
+| Ala Unreal | `unreal_wing.glb` | Galería 5×14 m con 5 cuadros (Death of Will al fondo) | muro N del Hall |
+| Ala Unity | `unity_wing.glb` | Estudio 9×9 m, 6 escritorios con CRT, libreros | muro N del Hall |
+| Laboratorio | `lab.glb` | 8×7 m, 3 estaciones CRT, servidores, planetario, pizarrón | muro O del Hall |
+| Sala de juegos | `game_room.glb` | 10×8 m, 8 máquinas arcade, billar, estrella de neón | muro E del Hall |
+| Sala de guardado | `save_room.glb` | 5×4 m, máquina de escribir (contacto) y libreta (curiosidades) | muro S del Hall |
+
+Presupuesto: 600–2 700 triángulos por sala; GLB de 150–400 kB.
 
 ### 6.4 UI
 - Capa HTML/CSS sobre el canvas (accesible, seleccionable, fácil de estilizar).
@@ -185,8 +212,9 @@ es directamente la intensidad en Three.js). Exportar con: GLB, +Y Up, Cameras y 
 ```
 index.html
 vite.config.js
+scripts/          optimize-images.mjs (`npm run images`)
 public/
-  img/            Imágenes (las rutas `img/...` de los JSON siguen funcionando)
+  img/            Imágenes WebP (≤1280 px) generadas desde art/img/; img/thumb/ miniaturas (≤256 px)
   models/         player.glb, salas *.glb
   textures/       Texturas PS1 optimizadas
   audio/
@@ -199,7 +227,8 @@ src/
   ui/             Título, archivo, pausa, mapa, modo lista
   data/           projects.json, profile.json, rooms.json
 art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
-  rooms/          build_test_room.py (genera las salas de prueba) y los .blend de las salas
+  img/            Imágenes originales en alta (fuente de `npm run images`)
+  rooms/          build_rooms.py (genera las seis salas) y los .blend de las salas
 ```
 
 ## 8. Riesgos
@@ -215,11 +244,23 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 
 ## 9. Preguntas abiertas
 - Nombre del "juego" / título de la pantalla inicial.
-- Ambientación: ¿mansión clásica, oficina/estudio, instalación de investigación?
+- ~~Ambientación~~ Mansión clásica con alas temáticas (decidido en la Fase 4; ajustable).
 - ~~¿El personaje representa a Starmise?~~ Sí: ropa de la foto de referencia (chaqueta acolchada con franjas roja y crema).
 - ¿Música propia o CC0?
 
 ## 10. Registro de decisiones
+- **2026-10-09** — Fase 4: ambientación de **mansión** con alas temáticas. Las seis salas salen de un
+  solo script de Blender (`art/rooms/build_rooms.py`, reemplaza a `build_test_room.py`; el hall pasa de
+  `test_room.glb` a `hall.glb`). Cada sala tiene una puerta al Hall y su `SPAWN_hall`; el Hall tiene un
+  `SPAWN_<sala>` frente a cada puerta. Los destacados aparecen dos veces (vitrina del Hall y su sala).
+  Imágenes: los originales se movieron a `art/img/` (no se publican) y los JSON apuntan a
+  `img/<nombre>.webp`; las texturas de portada usan `img/thumb/` (≤256 px) y se reducen a 128×96 en el
+  navegador. Dependencia de desarrollo nueva: `sharp` (solo para `npm run images`). DemoReel: documento
+  `demoreel` con miniatura y reproductor `youtube-nocookie` bajo demanda; en 3D la TV intenta usar la
+  miniatura de YouTube (con CORS) y si no puede muestra una pantalla azul de VCR. `rooms.json` gana
+  `fog` y `ambient` por sala. El cascarón de cada sala (`Room_Shell*`) usa *polygon offset* porque el
+  *vertex snapping* hacía parpadear lo pegado a muros y piso. Catharsis gana galería con dos capturas que
+  ya estaban en el repo (`Catharsis`, `CatharsisMap`); las fichas muestran `gallery` como miniaturas.
 - **2026-10-09** — Fase 3: UI como pila de capas (`src/ui/uiStack.js`): título, pausa y fichas se
   apilan; con alguna abierta el juego se pausa y la capa de arriba recibe la navegación (teclado nativo
   + mando traducido a acciones). Opciones en `src/core/settings.js` (localStorage). Se quitaron los atajos

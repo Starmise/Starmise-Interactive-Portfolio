@@ -18,7 +18,7 @@ import { TitleScreen } from './ui/titleScreen.js';
 import { Hud } from './ui/hud.js';
 import { resolveInteractable } from './ui/documents.js';
 
-// Fase 3 — sistemas: título y carga, salas con puertas, menú de pausa, fichas y mando.
+// Fase 4 — contenido: seis salas, objetos por proyecto con su portada y TV con el DemoReel.
 
 const BASE = import.meta.env.BASE_URL;
 const START_ROOM = 'hall';
@@ -38,8 +38,9 @@ ps1.setEnabled(settings.ps1);
 const scene = new THREE.Scene();
 const fogColor = new THREE.Color(0x050506);
 scene.background = fogColor;
-scene.fog = new THREE.Fog(fogColor, 5, 15);
-scene.add(new THREE.HemisphereLight(0x8790a8, 0x1c140e, 0.75));
+scene.fog = new THREE.Fog(fogColor, 5, 15); // cada sala ajusta near/far con `fog` de rooms.json
+const ambient = new THREE.HemisphereLight(0x8790a8, 0x1c140e, 0.75); // `ambient` de rooms.json
+scene.add(ambient);
 
 const transition = new DoorTransition(document.getElementById('fade'), document.getElementById('door-loading'));
 
@@ -134,6 +135,10 @@ function enterRoom(room, fromId) {
   if (world.room) scene.remove(world.room.root);
   world.room = room;
   scene.add(room.root);
+  const [near, far] = room.def.fog ?? [5, 15];
+  scene.fog.near = near;
+  scene.fog.far = far;
+  ambient.intensity = room.def.ambient ?? 0.75;
   for (const h of room.helpers) h.visible = world.debug;
 
   const player = world.player;
@@ -209,6 +214,7 @@ function loop(time) {
       player.update(dt);
       director.update(player.position);
     }
+    world.room.update(dt); // pantallas animadas (siguen encendidas en pausa)
 
     const target = playing ? interaction.find(player) : null;
     hud.setPrompt(target);
