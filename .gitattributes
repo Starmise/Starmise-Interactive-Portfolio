@@ -7,3 +7,5 @@
 *.gltf text
 *.hdr binary
 *.ktx2 binary
+*.blend binary
+*.fbx binary

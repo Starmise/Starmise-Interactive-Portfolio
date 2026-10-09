@@ -79,12 +79,13 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 - [x] Escena mínima: cargar `player.glb`, reproducir la caminata y verla en el navegador.
 
 ### Fase 2 — Prototipo vertical (una sala) ← hito para validar la sensación
-- [ ] Pipeline de render PS1 (§6.1): render a baja resolución, *vertex snapping*, texturas sin filtrado, mapeo afín, dithering, niebla.
-- [ ] Controlador del personaje: idle/caminar/correr, controles relativos a cámara + modo tanque.
-- [ ] Colisiones contra la geometría `COL_*` de la sala.
-- [ ] 2–3 cámaras fijas que cambian con volúmenes `TRG_CAM_*`.
-- [ ] Un objeto `INT_<id>` que abre la ficha del proyecto real desde `projects.json`.
-- [ ] Sala de prueba hecha en Blender (puede ser cajas texturizadas).
+- [x] Pipeline de render PS1 (§6.1): render a baja resolución, *vertex snapping*, texturas sin filtrado, mapeo afín, dithering, niebla. Toggle con `P`.
+- [x] Controlador del personaje: idle/caminar/correr, controles relativos a cámara + modo tanque (`C`; giro rápido con atrás + Shift).
+  - Mientras no existan `Idle` y `Run` en el GLB, se improvisan con `Walk` (pose de paso congelada / caminata acelerada).
+- [x] Colisiones contra la geometría `COL_*` de la sala (cápsula + `three-mesh-bvh`).
+- [x] 3 cámaras fijas que cambian con volúmenes `TRG_CAM_*` (con histéresis por solapamiento).
+- [x] Objetos `INT_<id>` que abren la ficha del proyecto real desde `projects.json` (los 4 destacados).
+- [x] Sala de prueba hecha en Blender (cajas texturizadas): `art/rooms/build_test_room.py` → `test_room.blend` + `public/models/rooms/test_room.glb`.
 - [ ] **Revisión con el usuario:** ¿se siente bien? Ajustar antes de seguir.
 
 ### Fase 3 — Sistemas
@@ -160,11 +161,14 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 | Prefijo | Uso |
 |---------|-----|
 | `COL_*` | Colisión (invisible en el juego). |
-| `CAM_<n>` | Cámara fija (posición, rotación, FOV). |
-| `TRG_CAM_<n>` | Volumen que activa la cámara `<n>` cuando el jugador entra. |
-| `INT_<projectId>` | Objeto examinable ligado a un proyecto. |
+| `CAM_<n>` | Cámara fija (posición, rotación, FOV). `<n>` solo letras/números. |
+| `TRG_CAM_<n>` | Volumen que activa la cámara `<n>` cuando el jugador entra. Varios volúmenes para la misma cámara: `TRG_CAM_<n>_<sufijo>`. Solapar ~0.4 m con los vecinos (histéresis). |
+| `INT_<projectId>` | Objeto examinable ligado a un proyecto. Un hijo con el material `MAT_Cover` recibe la portada (reducida a 128×96 en el navegador). |
 | `DOOR_<roomId>` | Puerta hacia otra sala. |
-| `SPAWN_<fromRoomId>` | Punto de aparición al entrar desde esa sala. |
+| `SPAWN_<fromRoomId>` | Punto de aparición al entrar desde esa sala (Empty; su flecha +Z indica hacia dónde mira). `SPAWN_default` para el inicio. |
+
+Las luces puntuales de Blender se exportan con la sala (modo de iluminación **RAW**: la potencia en W
+es directamente la intensidad en Three.js). Exportar con: GLB, +Y Up, Cameras y Punctual Lights activados.
 
 ### 6.3 Jugador
 - Animación con `AnimationMixer` y *crossfade* entre `Idle`/`Walk`/`Run`.
@@ -194,6 +198,7 @@ src/
   ui/             Título, archivo, pausa, mapa, modo lista
   data/           projects.json, profile.json, rooms.json
 art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
+  rooms/          build_test_room.py (genera la sala de prueba) y los .blend de las salas
 ```
 
 ## 8. Riesgos
@@ -214,6 +219,16 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 - ¿Música propia o CC0?
 
 ## 10. Registro de decisiones
+- **2026-10-09** — Fase 2 (prototipo): render PS1 en dos pasos (`src/render/`): escena a 240 px de alto
+  (ancho según la ventana) en un render target *HalfFloat*, y post-proceso a 15 bits con el dithering 4×4
+  de la consola; *vertex snapping* (rejilla = resolución/1.5) y mapeo afín inyectados con
+  `onBeforeCompile` en materiales Lambert. Los materiales PBR del GLB se convierten a Lambert. Sombra
+  "blob" bajo el personaje en lugar de shadow maps. La sala de prueba se genera con un script de Blender
+  (`bpy`, Blender 5.2) para poder regenerarla; si se edita el `.blend` a mano, exportar el GLB a mano.
+  Hall con dos cámaras + pasillo con una; las columnas se movieron a los muros porque tapaban al
+  personaje. Teclas provisionales hasta el menú de pausa: `C` controles, `P` efectos PS1, `F3`/`º`
+  depuración (muestra `COL_`/`TRG_`). Fuentes de la UI: VT323 y Courier Prime (Google Fonts, OFL).
+  Dependencia nueva: `three-mesh-bvh`.
 - **2026-10-08** — Fase 1: Vite 8 + Three.js r186. `player.glb` provisional generado del FBX para
   no bloquear la escena; el código (`src/player/loadPlayer.js`) quita la traslación horizontal del
   root y espera clips con los nombres de §5.4, así que el GLB final de Blender lo reemplaza sin cambios.

@@ -5,15 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Starmise — Portafolio interactivo</title>
     <meta name="description" content="Portafolio interactivo de Luis Rosaldo (Starmise), Game Developer." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=VT323&display=swap"
+    />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <div id="app"></div>
 
     <div id="hud">
-      <p id="status">Cargando…</p>
-      <a href="https://starmise.github.io/About-Me-Website/" target="_blank" rel="noopener">Versión clásica</a>
+      <p id="prompt" hidden><kbd>E</kbd> Examinar · <span data-label></span></p>
+      <p id="toast" role="status" hidden></p>
+      <div id="hud-bottom">
+        <p id="help"></p>
+        <p id="status">Cargando…</p>
+        <a href="https://starmise.github.io/About-Me-Website/" target="_blank" rel="noopener">Versión clásica</a>
+      </div>
     </div>
+
+    <div id="ui"></div>
 
     <script type="module" src="/src/main.js"></script>
   </body>

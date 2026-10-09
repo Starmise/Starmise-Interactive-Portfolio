@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { toPs1Material } from '../render/ps1Material.js';
 
 /**
  * Carga el personaje desde un GLB y prepara sus animaciones.
@@ -7,7 +8,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
  * TODO(personaje): `public/models/player.glb` es PROVISIONAL (convertido automáticamente
  * del FBX con una textura placeholder). Reemplazarlo por el exportado desde Blender con la
  * textura final y las acciones `Idle`, `Walk`, `Run`, `TurnL`, `TurnR`, `Examine`
- * (ver PLAN.md §5). Este código no necesita cambios si se respetan esos nombres.
+ * (ver PLAN.md §5). Este código no necesita cambios si se respetan esos nombres; mientras
+ * falten, el controlador improvisa Idle y Run a partir de Walk.
  */
 export async function loadPlayer(url) {
   const gltf = await new GLTFLoader().loadAsync(url);
@@ -15,18 +17,10 @@ export async function loadPlayer(url) {
 
   model.traverse((obj) => {
     if (!obj.isMesh) return;
-    obj.castShadow = true;
     // Los personajes con piel se deforman fuera de su caja original; evitar que desaparezcan.
     obj.frustumCulled = false;
-    const mat = obj.material;
-    if (mat.map) {
-      // Look PS1: texels nítidos, sin mipmaps.
-      mat.map.magFilter = THREE.NearestFilter;
-      mat.map.minFilter = THREE.NearestFilter;
-      mat.map.generateMipmaps = false;
-      mat.map.colorSpace = THREE.SRGBColorSpace;
-      mat.map.needsUpdate = true;
-    }
+    // Lambert + texels nítidos + vertex snapping/mapeo afín, igual que la sala.
+    obj.material = toPs1Material(obj.material);
   });
 
   const clips = gltf.animations.map(stripRootMotion);
