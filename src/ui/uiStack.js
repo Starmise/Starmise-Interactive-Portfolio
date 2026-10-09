@@ -7,6 +7,8 @@
  *   onAction(action)   opcional; devuelve true si gestionó la acción
  *                      acciones: up, down, left, right, confirm, back, tabPrev, tabNext, pause
  *   onShow / onHide    opcionales
+ *   nativeKeys         opcional; true = las flechas del teclado hacen lo de siempre en el
+ *                      navegador (desplazar la página), p. ej. en el modo lista
  *
  * Por defecto: arriba/izquierda = elemento anterior, abajo/derecha = siguiente,
  * confirm = clic en el elemento enfocado, back = cerrar la capa.
@@ -18,9 +20,10 @@ export class UiStack {
 
     // Teclado en los menús. Tab y Enter/Espacio los maneja el navegador de forma nativa.
     window.addEventListener('keydown', (e) => {
-      if (!this.top || e.defaultPrevented) return;
+      if (!this.top || e.defaultPrevented || isTyping(e)) return;
       const action = KEY_ACTIONS[e.code];
       if (!action) return;
+      if (this.top.nativeKeys && NATIVE_ACTIONS.has(action)) return;
       if (this.dispatch(action)) e.preventDefault();
     });
   }
@@ -46,7 +49,11 @@ export class UiStack {
     if (i < 0) return;
     this.layers.splice(i, 1);
     layer.onHide?.();
-    if (layer.returnFocus?.isConnected) layer.returnFocus.focus?.({ preventScroll: true });
+    // Devolver el foco a donde estaba; si ese elemento ya no se ve (p. ej. el título cambió de
+    // pantalla mientras tanto), al primer elemento de la capa que queda arriba.
+    const back = layer.returnFocus;
+    if (back?.isConnected && back.getClientRects?.().length && !back.closest('[hidden]')) back.focus?.({ preventScroll: true });
+    else if (this.top) focusFirst(this.top.el);
     if (!this.layers.length) this.onChange?.(false);
   }
 
@@ -105,6 +112,13 @@ const KEY_ACTIONS = {
   PageUp: 'tabPrev',
   PageDown: 'tabNext',
 };
+
+const NATIVE_ACTIONS = new Set(['up', 'down', 'left', 'right', 'tabPrev', 'tabNext']);
+
+function isTyping(e) {
+  const el = e.target;
+  return el instanceof HTMLElement && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) && el.type !== 'range');
+}
 
 export function focusables(root) {
   return [...root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])')]

@@ -45,19 +45,24 @@ No usar assets, logos, fuentes ni sonidos de Capcom/Resident Evil: solo se evoca
 
 ## Estado actual
 
-Fases 0–4 completadas (salvo la textura final del personaje y la galería real). Hay **seis salas**
+Fases 0–5 completadas (salvo la textura final del personaje, la galería real y medir 60 fps en un
+portátil real). Hay **seis salas**
 (mansión): Hall (vitrina con los 4 destacados, diario con la bio, TV con el DemoReel), Ala Unreal
 (cuadros), Ala Unity (escritorios con CRT), Laboratorio (estaciones CRT), Sala de juegos (máquinas
 arcade) y Sala de guardado (contacto y curiosidades); cada proyecto es un objeto con su portada. Hay
-título con carga, menú de pausa (inventario, mapa, opciones), fichas navegables (con galería y video)
-y soporte de mando. **Pendiente (TODO del usuario):** textura final del personaje y exportar
-`player.glb` desde Blender con `Idle`/`Walk`/`Run` (PLAN.md §5) — el actual es **provisional** (solo
-`Walk`); imágenes reales para `profile.gallery` (hoy `GalleryExample*`). Siguiente: revisar las salas
-con el usuario y la Fase 5 (modo lista, táctil, rendimiento).
+título con carga, menú de pausa (inventario, mapa, opciones), fichas navegables (con galería y video),
+soporte de mando y táctil, **modo lista** (HTML sin 3D; `#lista` en la URL), sugerencia de modo lista en
+equipos lentos y movimiento reducido. **Pendiente (TODO del usuario):** textura final del personaje y
+exportar `player.glb` desde Blender con `Idle`/`Walk`/`Run` (PLAN.md §5) — el actual es **provisional**
+(solo `Walk`); imágenes finales de los proyectos e imágenes reales para `profile.gallery` (hoy
+`GalleryExample*`); comprobar 60 fps con F3 en un portátil medio. Siguiente: revisar las salas con el
+usuario y la Fase 6 (audio, meta tags, pruebas en navegadores, publicación).
 
 Controles: WASD/flechas o stick mover · Shift/X correr · E/Enter/A examinar y abrir puertas ·
 Esc/Tab/Start menú · M/Select mapa · I inventario · Q/E o LB/RB pestañas y fichas · F3 (o `º`)
-depuración. En la consola del navegador, `__game` expone el estado.
+depuración (colisiones, triggers, fps, draw calls, triángulos). Táctil: joystick en la mitad izquierda
+(al borde corre), botón de acción, Mapa y ☰. En la consola del navegador, `__game` expone el estado
+(`__game.stats`: fps, draw calls, triángulos).
 
 ## Comandos
 
@@ -67,6 +72,7 @@ npm run dev      # servidor local con recarga
 npm run build    # genera dist/
 npm run preview  # sirve dist/ para probar el build
 npm run images   # regenera public/img/*.webp y public/img/thumb/ desde art/img/ (usa sharp)
+npm run budget   # tras el build: carga inicial y triángulos/draw calls por sala vs. presupuestos
 blender -b -P art/rooms/build_rooms.py [-- hall lab …]   # regenera las salas (.blend + .glb)
 ```
 
@@ -77,6 +83,7 @@ index.html         Punto de entrada de Vite (HUD + contenedor de UI)
 vite.config.js     base './', salida en dist/
 package.json       three + three-mesh-bvh + vite (+ sharp, solo para npm run images)
 scripts/optimize-images.mjs  art/img/* → public/img/<nombre>.webp (≤1280 px) + public/img/thumb/ (≤256 px)
+scripts/check-budgets.mjs    npm run budget: presupuestos de la Fase 5
 .github/workflows/deploy.yml  Deploy a GitHub Pages
 public/            Se copia tal cual a dist/
   img/             Imágenes WebP generadas (~1.2 MB); los JSON las referencian como img/<nombre>.webp
@@ -84,10 +91,15 @@ public/            Se copia tal cual a dist/
   models/player.glb  Personaje (PROVISIONAL: textura placeholder, solo la caminata "Walk")
   models/rooms/    hall, unreal_wing, unity_wing, lab, game_room, save_room (.glb, de build_rooms.py)
 src/
-  main.js          Arranque y bucle: título, salas, transiciones, interacción, pausa
-  style.css        HUD, título, menú de pausa y fichas "Archivo"
-  core/input.js    Teclado + mando (Gamepad API): acciones de juego y de menú
+  main.js          Arranque ligero: #lista o sin WebGL → modo lista; si no, importa game.js
+  shell.js         Compartido arranque/juego sin Three.js: capacidades del equipo y modo lista (#lista)
+  game.js          El juego y su bucle: título, salas, transiciones, interacción, pausa
+  style.css        HUD, título, menú de pausa, fichas "Archivo", táctil y modo lista
+  core/input.js    Teclado + mando (Gamepad API) + táctil: acciones de juego y de menú
   core/settings.js Opciones del jugador (localStorage) con suscripción a cambios
+  core/motion.js   Movimiento reducido (sistema u opción) → clase reduce-motion
+  core/capabilities.js  WebGL 2, render por software, poca memoria, ahorro de datos
+  core/perfMonitor.js   FPS jugando; avisa si el equipo va lento
   core/assets.js   Rutas de miniaturas (thumbUrl) y de YouTube (miniatura, embed)
   render/ps1Material.js  Vertex snapping + mapeo afín (onBeforeCompile), conversión a Lambert
   render/ps1Renderer.js  Render a 240 px + post-proceso 15 bits con dithering
@@ -106,6 +118,9 @@ src/
   ui/fileView.js   Documento "Archivo" (fichas de proyecto y del perfil)
   ui/documents.js  Convierte projects.json/profile.json en documentos; resuelve INT_<id>
   ui/hud.js        Prompt "Examinar/Abrir", ayuda de controles, avisos
+  ui/listView.js   Modo lista: todo el portafolio en HTML accesible (sin Three.js)
+  ui/touchControls.js  Joystick virtual y botones en pantalla
+  ui/suggestDialog.js  Diálogo de dos opciones (sugerir el modo lista)
   data/
     projects.json  FUENTE ÚNICA de los proyectos (22, con su sala en `room`)
     profile.json   Bio, estudio, DemoReel, habilidades, "qué hago", curiosidades, galería, contacto
@@ -149,3 +164,8 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
   Google Fonts no carga desde ahí; no es un error del proyecto.
 - Tras cambiar `package.json` (p. ej. al añadir `sharp`), correr `npm install` en Windows antes de
   `npm run dev`.
+- El modo lista se enlaza directo con `…/#lista` (útil para reclutadores). Cualquier texto nuevo del
+  portafolio va en `src/data/` y aparece solo en el juego y en el modo lista.
+- En la nube, Chromium dibuja por software: el título muestra el aviso de "equipo lento" y a los ~10 s
+  de juego aparece la sugerencia de modo lista. Para pruebas, guardar
+  `localStorage['starmise.settings'] = '{"perfHint":false}'` antes de cargar.

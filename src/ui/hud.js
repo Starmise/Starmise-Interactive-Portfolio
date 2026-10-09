@@ -1,5 +1,7 @@
 /**
- * HUD: prompt de interacción, ayuda de controles (teclado o mando) y avisos breves.
+ * HUD: prompt de interacción, ayuda de controles (teclado, mando o táctil) y avisos breves.
+ * En táctil el prompt no muestra tecla (el botón de acción de la pantalla hace de tecla) y la
+ * ayuda se oculta: los controles en pantalla se explican solos.
  */
 export class Hud {
   constructor() {
@@ -34,7 +36,10 @@ export class Hud {
     this.device = device;
     const pad = device === 'gamepad';
     this.promptKey.textContent = pad ? 'Ⓐ' : 'E';
-    this.help.innerHTML = pad
+    this.promptKey.hidden = device === 'touch';
+    this.help.innerHTML = device === 'touch'
+      ? ''
+      : pad
       ? `<span><kbd>stick</kbd> mover</span><span><kbd>X</kbd> correr</span><span><kbd>Ⓐ</kbd> examinar</span><span><kbd>Start</kbd> menú</span><span><kbd>Select</kbd> mapa</span>`
       : `<span><kbd>WASD</kbd>/<kbd>↑↓←→</kbd> mover</span><span><kbd>Shift</kbd> correr</span><span><kbd>E</kbd> examinar</span><span><kbd>Esc</kbd> menú</span><span><kbd>M</kbd> mapa</span>`;
   }
@@ -43,10 +48,10 @@ export class Hud {
     this.status.textContent = text;
   }
 
-  flash(text) {
+  flash(text, ms = 1800) {
     this.toast.textContent = text;
     this.toast.hidden = false;
     clearTimeout(this.toastTimer);
-    this.toastTimer = setTimeout(() => (this.toast.hidden = true), 1800);
+    this.toastTimer = setTimeout(() => (this.toast.hidden = true), ms);
   }
 }

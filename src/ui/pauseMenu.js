@@ -13,8 +13,8 @@ const TABS = [
  * abre fichas o viaja a una sala) y Opciones. Capa de la UiStack.
  */
 export class PauseMenu {
-  constructor(root, stack, { fileView, projects, profile, rooms, getCurrentRoom, onTravel, onTitle }) {
-    Object.assign(this, { stack, fileView, projects, profile, rooms, getCurrentRoom, onTravel, onTitle });
+  constructor(root, stack, { fileView, projects, profile, rooms, getCurrentRoom, onTravel, onTitle, onList }) {
+    Object.assign(this, { stack, fileView, projects, profile, rooms, getCurrentRoom, onTravel, onTitle, onList });
     this.tab = 'inventory';
 
     this.el = document.createElement('div');
@@ -109,9 +109,10 @@ export class PauseMenu {
   }
 
   #renderHint() {
-    this.hint.textContent = this.device === 'gamepad'
-      ? 'LB/RB pestañas · Ⓐ aceptar · Ⓑ volver'
-      : 'Q/E pestañas · ↑↓ elegir · Enter aceptar · Esc volver';
+    this.hint.textContent = {
+      gamepad: 'LB/RB pestañas · Ⓐ aceptar · Ⓑ volver',
+      touch: 'Toca una pestaña o una opción',
+    }[this.device] ?? 'Q/E pestañas · ↑↓ elegir · Enter aceptar · Esc volver';
   }
 
   #build(tab) {
@@ -155,6 +156,9 @@ export class PauseMenu {
 
   #map() {
     const frag = document.createDocumentFragment();
+    const quick = h('div', null, 'pause__list map-quick');
+    quick.append(button('Ver todo el portafolio en modo lista (sin 3D)', () => this.onList()));
+    frag.append(quick);
     const current = this.getCurrentRoom();
     for (const room of this.rooms) {
       const block = h('section', null, 'map-room');
@@ -200,6 +204,10 @@ export class PauseMenu {
       toggleRow('Controles', 'mode', [['modern', 'Modernos'], ['tank', 'Clásicos (tanque)']]),
       toggleRow('Efectos PS1', 'ps1', [[true, 'Sí'], [false, 'No']]),
       toggleRow('Animación de puertas', 'doorAnim', [['full', 'Completa'], ['short', 'Rápida']]),
+      toggleRow('Movimiento', 'motion', [['auto', 'Del sistema'], ['reduce', 'Reducido'], ['full', 'Completo']],
+        'Reducido: sin temblor de polígonos, puertas con fundido y sin parpadeos.'),
+      toggleRow('Controles táctiles', 'touch', [['auto', 'Automático'], ['on', 'Siempre'], ['off', 'Nunca']]),
+      toggleRow('Sugerir modo lista si va lento', 'perfHint', [[true, 'Sí'], [false, 'No']]),
       sliderRow('Volumen', 'volume', 'Aún no hay audio: llegará en una próxima versión.'),
     );
     frag.append(rows);
@@ -218,7 +226,7 @@ export class PauseMenu {
     classic.target = '_blank';
     classic.rel = 'noopener';
     classic.textContent = 'Versión clásica del portafolio ↗';
-    links.append(classic, button('Volver al título', () => this.onTitle()));
+    links.append(button('Modo lista (todo el portafolio, sin 3D)', () => this.onList()), classic, button('Volver al título', () => this.onTitle()));
     frag.append(links);
     return frag;
   }
@@ -232,18 +240,21 @@ const CONTROLS = [
   ['Mapa · Inventario', 'M · I', 'Select'],
   ['Pestañas / fichas', 'Q · E', 'LB · RB'],
   ['Giro rápido (clásicos)', 'atrás + Shift', 'atrás + X'],
+  ['Pantalla táctil', 'joystick a la izquierda (al borde, corre)', 'botón de acción · ☰ menú'],
 ];
 
-function toggleRow(label, key, options) {
+function toggleRow(label, key, options, note) {
   const row = h('div', null, 'opt-row');
-  row.append(h('span', label, 'opt-row__label'));
+  const labelEl = h('span', label, 'opt-row__label');
+  if (note) labelEl.append(h('small', note, 'opt-row__note'));
+  row.append(labelEl);
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'opt-row__value';
   const paint = () => {
     const i = options.findIndex(([v]) => v === settings[key]);
     b.textContent = `◂ ${options[i]?.[1] ?? options[0][1]} ▸`;
-    b.setAttribute('aria-label', `${label}: ${options[i]?.[1]}. Pulsa para cambiar.`);
+    b.setAttribute('aria-label', `${label}: ${options[i]?.[1] ?? options[0][1]}. Pulsa para cambiar.`);
   };
   b.addEventListener('click', () => {
     const i = options.findIndex(([v]) => v === settings[key]);

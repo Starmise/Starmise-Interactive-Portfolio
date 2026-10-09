@@ -2,13 +2,15 @@ import { focusFirst } from './uiStack.js';
 
 /**
  * Pantalla de carga + título. Mientras cargan los modelos muestra una barra de progreso;
- * cuando termina, "Pulsa Start" y luego el menú: Empezar, Controles, Versión clásica,
- * Modo lista (llega en la Fase 5). La sala de inicio se ve detrás, oscurecida.
+ * cuando termina, "Pulsa Start" y luego el menú: Empezar, Modo lista, Controles, Versión
+ * clásica. La sala de inicio se ve detrás, oscurecida. El modo lista se puede abrir ya
+ * durante la carga. `setHint()` muestra un aviso bajo el menú (p. ej. equipo lento).
  */
 export class TitleScreen {
-  constructor(root, stack, { profile, onStart }) {
+  constructor(root, stack, { profile, onStart, onList }) {
     this.stack = stack;
     this.onStart = onStart;
+    this.onList = onList;
     this.ready = false;
     this.stage = 'loading'; // 'loading' | 'press' | 'menu' | 'controls'
 
@@ -22,15 +24,16 @@ export class TitleScreen {
         <div class="title__loading" data-stage="loading">
           <div class="title__bar" role="progressbar" aria-label="Cargando" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
           <p class="title__loading-text">Cargando…</p>
+          <button type="button" class="title__skip" data-act="list">¿Con prisa? Ver en modo lista</button>
         </div>
 
-        <button type="button" class="title__press" data-stage="press">Pulsa <kbd data-start>Enter</kbd></button>
+        <button type="button" class="title__press" data-stage="press" data-start>Pulsa <kbd>Enter</kbd></button>
 
         <nav class="title__menu" data-stage="menu" aria-label="Menú principal">
           <button type="button" data-act="start">Empezar</button>
+          <button type="button" data-act="list">Modo lista <small>(sin 3D)</small></button>
           <button type="button" data-act="controls">Controles</button>
           <a href="${escapeHtml(profile.classicSite)}" target="_blank" rel="noopener">Versión clásica ↗</a>
-          <button type="button" disabled title="Llegará en una próxima versión">Modo lista <small>(pronto)</small></button>
         </nav>
 
         <div class="title__controls" data-stage="controls">
@@ -39,22 +42,27 @@ export class TitleScreen {
             <dt>Correr</dt><dd>Shift · X / □</dd>
             <dt>Examinar, abrir puertas</dt><dd>E / Enter · A / ✕</dd>
             <dt>Menú (inventario, mapa, opciones)</dt><dd>Esc · Start</dd>
+            <dt>Pantalla táctil</dt><dd>Joystick a la izquierda (al borde, corre) · botón de acción · ☰ menú</dd>
           </dl>
           <p>Los controles clásicos tipo tanque se activan en <em>Opciones</em>.</p>
           <button type="button" data-act="back">Volver</button>
         </div>
+
+        <p class="title__hint" role="status" hidden></p>
       </div>
       <p class="title__legal">Proyecto original inspirado en los survival horror de los 90.</p>
     `;
     root.appendChild(this.el);
     this.inner = this.el.querySelector('.title__inner');
     this.bar = this.el.querySelector('.title__bar');
-    this.startKey = this.el.querySelector('[data-start]');
+    this.startLabel = this.el.querySelector('[data-start]');
+    this.hint = this.el.querySelector('.title__hint');
 
     this.el.querySelector('.title__press').addEventListener('click', () => this.#setStage('menu'));
     this.el.addEventListener('click', (e) => {
       const act = e.target.closest('[data-act]')?.dataset.act;
       if (act === 'start') this.#start();
+      else if (act === 'list') this.onList?.();
       else if (act === 'controls') this.#setStage('controls');
       else if (act === 'back') this.#setStage('menu');
     });
@@ -71,7 +79,7 @@ export class TitleScreen {
           this.#setStage('menu');
           return true;
         }
-        return this.stage === 'loading';
+        return false;
       },
       onHide: () => this.el.classList.add('is-hidden'),
       onShow: () => this.el.classList.remove('is-hidden'),
@@ -97,7 +105,14 @@ export class TitleScreen {
   }
 
   setDevice(device) {
-    this.startKey.textContent = device === 'gamepad' ? 'Start' : 'Enter';
+    if (device === 'touch') this.startLabel.textContent = 'Toca para empezar';
+    else this.startLabel.innerHTML = `Pulsa <kbd>${device === 'gamepad' ? 'Start' : 'Enter'}</kbd>`;
+  }
+
+  /** Aviso bajo el menú (vacío = ocultarlo). */
+  setHint(text) {
+    this.hint.textContent = text;
+    this.hint.hidden = !text;
   }
 
   /** Volver al título desde el juego. */
