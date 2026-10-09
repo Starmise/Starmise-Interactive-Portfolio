@@ -108,17 +108,29 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
       que solo se incrusta al pulsar "Reproducir").
 - [x] Generar versiones optimizadas de imágenes (`npm run images`: WebP ≤1280 px para fichas y
       miniaturas ≤256 px para texturas; los originales pasan a `art/img/`). 33 MB → 1.2 MB.
+- [ ] **(TODO del usuario)** Cambiar las portadas de los proyectos por las finales: copiar las nuevas
+      a `art/img/` (mismo nombre, o actualizar `cover` en `projects.json`) y correr `npm run images`.
+      El juego y el modo lista las toman solas.
 - [ ] **(TODO del usuario)** Reemplazar las imágenes de galería de muestra (`GalleryExample*`):
       copiar las reales a `art/img/`, correr `npm run images` y actualizar `profile.gallery`.
       (Aún no se muestran en ninguna parte del juego.)
 - [ ] Revisión con el usuario: recorrer las seis salas y ajustar cámaras, luces y distribución.
 
 ### Fase 5 — Accesibilidad, móvil y rendimiento
-- [ ] **Modo lista**: vista HTML accesible con todos los proyectos (misma app, mismos datos).
-- [ ] Controles táctiles: joystick virtual + botón de interacción; o modo clic para caminar.
-- [ ] Detección de equipo lento → sugerir modo lista.
-- [ ] `prefers-reduced-motion`: desactivar *jitter*/temblores de cámara.
+- [x] **Modo lista**: vista HTML accesible con todos los proyectos (misma app, mismos datos).
+      `src/ui/listView.js`; se abre desde el título (también durante la carga), el mapa, Opciones o
+      con `#lista` en la URL (sin descargar el juego). Sin WebGL 2 se abre sola con un aviso.
+- [x] Controles táctiles: joystick virtual + botón de interacción (`src/ui/touchControls.js`).
+      No se hizo "clic para caminar": el joystick cubre lo mismo sin pathfinding.
+- [x] Detección de equipo lento → sugerir modo lista (`src/core/capabilities.js` al arrancar y
+      `src/core/perfMonitor.js` midiendo FPS mientras se juega).
+- [x] `prefers-reduced-motion`: desactivar *jitter*/temblores de cámara (`src/core/motion.js`, opción
+      "Movimiento" en Opciones).
 - [ ] Presupuestos: carga inicial < 5 MB, < 5k triángulos por sala, 60 fps en un portátil medio.
+  - [x] Carga inicial: **767 kB** (antes 2.1 MB) · modo lista directo: 18 kB + imágenes al verse.
+  - [x] Triángulos: máx. **2 664** (Hall); el resto 600–1 900. Se comprueba con `npm run budget`.
+  - [ ] **60 fps (TODO del usuario):** jugar en un portátil medio con F3 (muestra fps, draw calls y
+        triángulos). En la nube solo hay render por software (~9 fps), que no sirve para medir.
 
 ### Fase 6 — Pulido y lanzamiento
 - [ ] Audio: ambiente por sala, sonidos de puerta/pasos/menú (originales o CC0), silenciado hasta la primera interacción.
@@ -201,7 +213,25 @@ Todas se generan con `art/rooms/build_rooms.py` (texturas procedurales de 64×64
 | Sala de juegos | `game_room.glb` | 10×8 m, 8 máquinas arcade, billar, estrella de neón | muro E del Hall |
 | Sala de guardado | `save_room.glb` | 5×4 m, máquina de escribir (contacto) y libreta (curiosidades) | muro S del Hall |
 
-Presupuesto: 600–2 700 triángulos por sala; GLB de 150–400 kB.
+Presupuesto: 600–2 700 triángulos por sala (35–137 draw calls); GLB de 150–400 kB. `npm run budget` lo
+comprueba (y la carga inicial).
+
+### 6.3c Arranque, modo lista y móvil (Fase 5)
+- `src/main.js` es un arranque ligero (~13 kB con gzip, incluye los JSON): con `#lista` o sin WebGL 2
+  abre el modo lista; si no, importa `src/game.js` (Three.js y todo el juego, ~190 kB con gzip).
+  `src/shell.js` comparte entre ambos las capacidades del equipo y el modo lista.
+- Modo lista: página HTML normal sobre el juego (el resto queda `inert`, el juego deja de dibujarse).
+  Abrirlo desde el juego añade `#lista` al historial: "atrás" vuelve al juego. Con el mando se recorre
+  como cualquier capa de la `UiStack`; con teclado las flechas desplazan la página (`nativeKeys`).
+- Equipo lento: al arrancar se mira si hay WebGL 2, render por software, ≤ 2 GB de memoria o ≤ 2
+  núcleos, o ahorro de datos (aviso en el título). Jugando, si dos ventanas de 4 s seguidas dan < 24 fps,
+  un diálogo sugiere el modo lista una vez ("Seguir en 3D" lo desactiva; también en Opciones).
+- Táctil: joystick flotante en la mitad izquierda (al borde = correr), botón de acción con el verbo
+  del objeto al alcance, Mapa y ☰ arriba a la derecha. Aparece al tocar la pantalla (opción
+  "Controles táctiles": Automático / Siempre / Nunca). En vertical las cámaras abren el FOV (hasta
+  100°) para no perder ancho, y se sugiere girar el teléfono.
+- Movimiento reducido (sistema u opción "Movimiento"): sin vertex snapping, puertas con fundido,
+  TV sin estática/parpadeo y sin parpadeos en la interfaz (clase `reduce-motion` en `<html>`).
 
 ### 6.4 UI
 - Capa HTML/CSS sobre el canvas (accesible, seleccionable, fácil de estilizar).
@@ -249,6 +279,16 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 - ¿Música propia o CC0?
 
 ## 10. Registro de decisiones
+- **2026-10-09** — Fase 5: el JS se divide en arranque (`main.js` + `shell.js`) y juego (`game.js`,
+  antes `main.js`), para que el modo lista y los equipos sin WebGL no descarguen Three.js. Las salas
+  vecinas ya no se precargan en el título sino al empezar a jugar (carga inicial 2.1 MB → 767 kB).
+  Modo lista con los mismos datos: proyectos agrupados por sala (`rooms.json`), destacados arriba,
+  fichas completas en `<details>` y la numeración "Archivo Nº" del juego. Táctil con joystick virtual
+  (sin "clic para caminar"). Opciones nuevas: Movimiento (Del sistema / Reducido / Completo), Controles
+  táctiles y Sugerir modo lista; la animación de puertas ya no se fuerza a "Rápida" al guardar, sino
+  que el movimiento reducido manda. F3 muestra fps, draw calls y triángulos (`__game.stats`).
+  Nuevo `npm run budget` (`scripts/check-budgets.mjs`). Las fichas tienen botones ◂ ▸ para pasar de
+  archivo con ratón o toque. Pendiente de verificar en hardware real: 60 fps en un portátil medio.
 - **2026-10-09** — Fase 4: ambientación de **mansión** con alas temáticas. Las seis salas salen de un
   solo script de Blender (`art/rooms/build_rooms.py`, reemplaza a `build_test_room.py`; el hall pasa de
   `test_room.glb` a `hall.glb`). Cada sala tiene una puerta al Hall y su `SPAWN_hall`; el Hall tiene un

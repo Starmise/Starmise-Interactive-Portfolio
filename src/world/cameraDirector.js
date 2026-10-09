@@ -13,8 +13,21 @@ export class CameraDirector {
     this.onChange = null; // (id, camera) => void
   }
 
+  /**
+   * Las cámaras se encuadran en Blender para pantallas apaisadas. En una ventana más estrecha
+   * (un móvil en vertical) se abre el FOV vertical para conservar el ancho de imagen que
+   * tendría una proporción MIN_ASPECT, y así el personaje no se sale por los lados.
+   */
   setAspect(aspect) {
     for (const cam of this.room.cameras.values()) {
+      cam.userData.baseFov ??= cam.fov;
+      const base = cam.userData.baseFov;
+      if (aspect < MIN_ASPECT) {
+        const half = Math.atan((Math.tan(THREE.MathUtils.degToRad(base / 2)) * MIN_ASPECT) / aspect);
+        cam.fov = Math.min(MAX_FOV, THREE.MathUtils.radToDeg(half * 2));
+      } else {
+        cam.fov = base;
+      }
       cam.aspect = aspect;
       cam.updateProjectionMatrix();
     }
@@ -50,6 +63,9 @@ function contains(trigger, point) {
   _local.copy(point).applyMatrix4(trigger.inverse);
   return trigger.box.containsPoint(_local);
 }
+
+const MIN_ASPECT = 1.2;
+const MAX_FOV = 100;
 
 const _probe = new THREE.Vector3();
 const _local = new THREE.Vector3();

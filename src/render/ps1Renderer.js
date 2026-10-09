@@ -8,13 +8,15 @@ import { ps1Uniforms } from './ps1Material.js';
  *  2. Un quad a pantalla completa lo escala con filtrado nearest, reduce el color a
  *     15 bits (5 por canal) con el dithering ordenado 4×4 de la consola.
  *
- * Con los efectos apagados se dibuja directamente a resolución nativa.
+ * Con los efectos apagados se dibuja directamente a resolución nativa. El temblor de vértices
+ * se puede quitar aparte (`setSnap(false)`, con movimiento reducido) sin perder el resto.
  */
 export class Ps1Renderer {
   constructor(renderer, { height = 240 } = {}) {
     this.renderer = renderer;
     this.height = height;
     this.enabled = true;
+    this.snap = true;
     this.size = new THREE.Vector2();
 
     this.target = new THREE.WebGLRenderTarget(1, 1, {
@@ -90,11 +92,17 @@ export class Ps1Renderer {
 
   setEnabled(on) {
     this.enabled = on;
-    ps1Uniforms.uPs1SnapOn.value = on ? 1 : 0;
+    ps1Uniforms.uPs1SnapOn.value = on && this.snap ? 1 : 0;
     ps1Uniforms.uPs1Affine.value = on ? 1 : 0;
     this.renderer.setPixelRatio(on ? 1 : Math.min(window.devicePixelRatio, 2));
     const canvas = this.renderer.domElement;
     canvas.style.imageRendering = on ? 'pixelated' : 'auto';
+  }
+
+  /** Vertex snapping (el "temblor" de los polígonos). */
+  setSnap(on) {
+    this.snap = on;
+    ps1Uniforms.uPs1SnapOn.value = this.enabled && on ? 1 : 0;
   }
 
   render(scene, camera) {

@@ -7,8 +7,18 @@ const KEY = 'starmise.settings';
 const DEFAULTS = {
   mode: 'modern', // 'modern' | 'tank'
   ps1: true, // efectos PS1 (resolución, temblor, dithering)
-  doorAnim: 'full', // 'full' | 'short'
+  doorAnim: 'full', // 'full' | 'short' (con movimiento reducido siempre es 'short')
+  motion: 'auto', // 'auto' (según el sistema) | 'reduce' | 'full' — ver core/motion.js
+  touch: 'auto', // controles táctiles: 'auto' (al tocar la pantalla) | 'on' | 'off'
+  perfHint: true, // sugerir el modo lista si el juego va lento
   volume: 0.8, // 0..1 (el audio llega en la Fase 6)
+};
+
+const CHOICES = {
+  mode: ['modern', 'tank'],
+  doorAnim: ['full', 'short'],
+  motion: ['auto', 'reduce', 'full'],
+  touch: ['auto', 'on', 'off'],
 };
 
 const listeners = new Set();
@@ -34,16 +44,9 @@ function load() {
   } catch {
     /* almacenamiento no disponible */
   }
-  if (!['modern', 'tank'].includes(s.mode)) s.mode = DEFAULTS.mode;
-  if (!['full', 'short'].includes(s.doorAnim)) s.doorAnim = DEFAULTS.doorAnim;
-  // Con "reducir movimiento" en el sistema, la puerta va en versión corta por defecto.
-  let fresh = true;
-  try {
-    fresh = !localStorage.getItem(KEY);
-  } catch {
-    /* sin almacenamiento */
+  for (const [key, values] of Object.entries(CHOICES)) {
+    if (!values.includes(s[key])) s[key] = DEFAULTS[key];
   }
-  if (fresh && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) s.doorAnim = 'short';
   return s;
 }
 

@@ -1,5 +1,5 @@
 /**
- * Entrada unificada: teclado + mando (Gamepad API, mapeo "standard").
+ * Entrada unificada: teclado + mando (Gamepad API, mapeo "standard") + táctil.
  *
  * - Juego: `axes()` (analógico, x = derecha, y = adelante), `held(acción)` y
  *   `consume(acción)` para pulsaciones únicas.
@@ -11,6 +11,9 @@
  *   X / □, RB, RT         correr           B / ○    volver
  *   Start / Options       menú de pausa    Select / Share  mapa
  *   LB / RB               cambiar pestaña en el menú
+ *
+ * Táctil (ui/touchControls.js): el joystick virtual llama a `setTouch(x, y, run)` y los
+ * botones a `press(acción)`. `lastDevice` pasa a 'touch' al tocar la pantalla.
  */
 const KEYS = {
   up: ['KeyW', 'ArrowUp'],
@@ -35,8 +38,10 @@ export class Input {
     this.pressed = new Set(); // acciones de juego pulsadas este frame
     this.uiPressed = new Set(); // acciones de menú generadas por el mando
     this.enabled = true;
-    this.lastDevice = 'keyboard'; // 'keyboard' | 'gamepad'
+    // 'keyboard' | 'gamepad' | 'touch'. En móviles y tabletas se empieza en táctil.
+    this.lastDevice = window.matchMedia?.('(hover: none) and (pointer: coarse)').matches ? 'touch' : 'keyboard';
     this.onDeviceChange = null;
+    this.touch = { x: 0, y: 0, run: false };
 
     this.pad = { axes: { x: 0, y: 0 }, buttons: [], prevButtons: [], stickDir: null, repeatAt: 0 };
 
@@ -53,12 +58,38 @@ export class Input {
     target.addEventListener('keyup', (e) => this.down.delete(e.code));
     window.addEventListener('blur', () => this.down.clear());
     window.addEventListener('gamepadconnected', () => this.#setDevice('gamepad'));
+    window.addEventListener('pointerdown', (e) => e.pointerType === 'touch' && this.#setDevice('touch'), {
+      capture: true,
+      passive: true,
+    });
   }
 
   setEnabled(on) {
     this.enabled = on;
     this.down.clear();
     this.pressed.clear();
+    this.touch.x = this.touch.y = 0;
+    this.touch.run = false;
+  }
+
+  /** Joystick virtual: x = derecha, y = adelante en [-1, 1]; run = empujado hasta el borde. */
+  setTouch(x, y, run) {
+    const t = this.touch;
+    if (this.enabled) {
+      // Flancos, para el giro rápido del modo tanque (atrás + correr).
+      if (run && !t.run) this.pressed.add('run');
+      if (y < -0.5 && !(t.y < -0.5)) this.pressed.add('down');
+    }
+    t.x = x;
+    t.y = y;
+    t.run = run;
+    this.#setDevice('touch');
+  }
+
+  /** Pulsación de un botón en pantalla (interact, pause, map…). */
+  press(action) {
+    if (this.enabled) this.pressed.add(action);
+    this.#setDevice('touch');
   }
 
   /** Leer el mando. Llamar una vez al inicio de cada frame. */
@@ -122,7 +153,7 @@ export class Input {
     if (!this.enabled) return false;
     if (KEYS[action]?.some((code) => this.down.has(code))) return true;
     const b = this.pad.buttons;
-    if (action === 'run') return !!(b[PAD.x] || b[PAD.rb] || b[PAD.rt]);
+    if (action === 'run') return !!(b[PAD.x] || b[PAD.rb] || b[PAD.rt] || this.touch.run);
     return false;
   }
 
@@ -153,6 +184,7 @@ export class Input {
     const kx = (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0);
     const ky = (this.held('up') ? 1 : 0) - (this.held('down') ? 1 : 0);
     if (kx || ky) return { x: kx, y: ky };
+    if (this.touch.x || this.touch.y) return { x: this.touch.x, y: this.touch.y };
     return { x: this.pad.axes.x, y: this.pad.axes.y };
   }
 

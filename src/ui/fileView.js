@@ -41,6 +41,11 @@ export class FileView {
     this.doc = this.el.querySelector('.file-doc');
     this.f = Object.fromEntries([...this.el.querySelectorAll('[data-f]')].map((n) => [n.dataset.f, n]));
     this.f.close.addEventListener('click', () => this.close());
+    // Anterior/siguiente con ratón o toque (además de Q/E y LB/RB).
+    this.f.nav.addEventListener('click', (e) => {
+      const step = e.target.closest('[data-step]')?.dataset.step;
+      if (step) this.#step(Number(step));
+    });
     this.el.querySelector('.file-view__backdrop').addEventListener('click', () => this.close());
 
     this.layer = {
@@ -124,6 +129,7 @@ export class FileView {
     const poster = el('img');
     poster.src = /^https?:/.test(video.poster) ? video.poster : this.baseUrl + video.poster;
     poster.alt = '';
+    poster.addEventListener('error', () => poster.remove());
     play.append(poster, el('span', '▶ Reproducir', null, 'file-doc__play-label'));
     play.addEventListener('click', () => {
       const frame = el('iframe');
@@ -201,7 +207,14 @@ export class FileView {
     f.links.hidden = !doc.links?.length;
 
     const seq = this.sequence;
-    f.nav.textContent = seq && seq.docs.length > 1 ? `◂ Q/LB  ${seq.index + 1} / ${seq.docs.length}  E/RB ▸` : '';
+    if (seq && seq.docs.length > 1) {
+      f.nav.innerHTML = `
+        <button type="button" class="file-doc__step" data-step="-1" aria-label="Archivo anterior">◂<span class="file-doc__keys"> Q/LB</span></button>
+        <span>${seq.index + 1} / ${seq.docs.length}</span>
+        <button type="button" class="file-doc__step" data-step="1" aria-label="Archivo siguiente"><span class="file-doc__keys">E/RB </span>▸</button>`;
+    } else {
+      f.nav.replaceChildren();
+    }
     this.doc.scrollTop = 0;
   }
 }
