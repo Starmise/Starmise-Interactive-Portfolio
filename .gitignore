@@ -16,3 +16,7 @@ npm-debug.log*
 # Sistema operativo / editor
 .DS_Store
 Thumbs.db
+
+# Copias de seguridad de Blender
+*.blend1
+*.blend2

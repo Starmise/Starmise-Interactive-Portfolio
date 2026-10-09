@@ -2,7 +2,7 @@
   {
     "id": "persona-error",
     "title": "Persona_ERROR",
-    "cover": "img/PersonaErrorMain.jpg",
+    "cover": "img/PersonaErrorMain.webp",
     "room": "game-room",
     "tagline": "RPG de horror psicológico — Global Game Jam 2026",
     "tags": ["Unity", "Game Jam", "GGJ 2026", "VFX", "UI"],
@@ -17,7 +17,7 @@
   {
     "id": "epic-lucio-prototype",
     "title": "Epic Lucio Prototype",
-    "cover": "img/EpicLucioPrototypeMain.jpg",
+    "cover": "img/EpicLucioPrototypeMain.webp",
     "room": "unreal-wing",
     "tagline": "Prototipo de acción en tercera persona en Unreal Engine 5",
     "tags": ["Unreal Engine 5", "Prototipo", "UI", "Game Design", "Testing"],
@@ -30,7 +30,7 @@
   {
     "id": "cosmic-fang",
     "title": "Cosmic Fang",
-    "cover": "img/CosmicFangMain.png",
+    "cover": "img/CosmicFangMain.webp",
     "room": "game-room",
     "tagline": "Shooter 2D top-down — Game a Week",
     "tags": ["Shooter 2D", "Top Down", "Game a Week", "Programación"],
@@ -45,7 +45,7 @@
   {
     "id": "lucio-kart",
     "title": "Lucio Kart",
-    "cover": "img/LucioKartMain.jpg",
+    "cover": "img/LucioKartMain.webp",
     "room": "unity-wing",
     "tagline": "Carreras de karts multijugador en red",
     "tags": ["Unity", "Multijugador", "Photon PUN", "UI/UX"],
@@ -58,7 +58,7 @@
   {
     "id": "3d-visualizer",
     "title": "3D Visualizer",
-    "cover": "img/Visualizer3DMain.jpg",
+    "cover": "img/Visualizer3DMain.webp",
     "room": "unreal-wing",
     "tagline": "Visualizador 3D interactivo en tiempo real",
     "tags": ["Unreal Engine 5", "Renderizado en tiempo real", "Materiales PBR"],
@@ -71,7 +71,7 @@
   {
     "id": "pops-and-barks",
     "title": "Pops & Barks",
-    "cover": "img/PopsAndBarksMain.jpg",
+    "cover": "img/PopsAndBarksMain.webp",
     "room": "game-room",
     "tagline": "Persecución entre un perro y una burbuja — Global Game Jam 2025",
     "tags": ["Unity", "Game Jam", "GGJ 2025", "Game Design"],
@@ -86,7 +86,7 @@
   {
     "id": "custom-2d-rendering-framework",
     "title": "Custom 2D Rendering Framework",
-    "cover": "img/Custom2DFrameworkMain.jpg",
+    "cover": "img/Custom2DFrameworkMain.webp",
     "room": "lab",
     "tagline": "Framework 2D propio en C++ con SFML e ImGui",
     "tags": ["C++", "SFML", "ImGui", "Programación gráfica"],
@@ -99,7 +99,7 @@
   {
     "id": "epic-lucio-mvp",
     "title": "Epic Lucio MVP",
-    "cover": "img/EpicLucioMVPMain.jpg",
+    "cover": "img/EpicLucioMVPMain.webp",
     "room": "unreal-wing",
     "tagline": "Evolución del prototipo: iluminación en tiempo real y combate",
     "tags": ["Unreal Engine 5", "Iluminación", "Post-procesado", "Retargeting"],
@@ -112,14 +112,14 @@
   {
     "id": "catharsis",
     "title": "Catharsis",
-    "cover": "img/CatharsisMain.png",
+    "cover": "img/CatharsisMain.webp",
     "room": "game-room",
     "tagline": "RPG + Tycoon + Gacha",
     "tags": ["RPG", "Tycoon", "Gacha", "Diseño de niveles 3D"],
     "description": "Este es un juego intenta fusionar las dinámicas administrativas de un Tycoon y Gacha junto a una gran aventura Rpg. En donde cada dinámica trae un beneficio a otra estas además de que estas estarán simplificadas para la comodidad de los jugadores. Además de esto traerá una historia un tanto peculiar en la cual conocerás e interactuaras con algunos personajes entrañables y misteriosos a lo largo de tu aventura.",
     "process": "Catharsis fue un proyecto de larga duración realizado durante la carrera de desarrollo de videojuegos en la Universidad Cuauhtémoc Querétaro. Dicho proyecto duró 8 meses en realización y es el más extenso en el que he participado. Mi papel en este proyecto fue apoyar con la estructura del nivel, pasando los bocetos hechos a mano a mapas jugables en 3D. También me encargué de modelar estructuras básicas, ajustar las zonas de aparición aleatorias de los enemigos, añadir prompts y detalles a los mapas, editar algunas imágenes promocionales para el juego y apoyar con el sistema de inventario.",
     "role": "Estructura y diseño de niveles 3D, modelado de estructuras básicas, zonas de aparición de enemigos, arte promocional y sistema de inventario.",
-    "gallery": [],
+    "gallery": ["img/Catharsis.webp", "img/CatharsisMap.webp"],
     "externalLink": "https://justrab.itch.io/catharsis",
     "externalLabel": "¡Conoce más y prueba el juego!",
     "featured": true
@@ -127,7 +127,7 @@
   {
     "id": "solar-system-simulation",
     "title": "2D Solar System Simulations",
-    "cover": "img/SolarSystemMain.jpg",
+    "cover": "img/SolarSystemMain.webp",
     "room": "lab",
     "tagline": "Rasterizado por CPU con C++, Win32 y DXGI",
     "tags": ["C++", "Win32", "DXGI", "Programación gráfica"],
@@ -140,7 +140,7 @@
   {
     "id": "off-the-hook",
     "title": "Off The Hook",
-    "cover": "img/OffTheHookMain.jpg",
+    "cover": "img/OffTheHookMain.webp",
     "room": "unity-wing",
     "tagline": "Acción en primera persona: derriba objetivos contrarreloj",
     "tags": ["Unity", "Programación", "Game Design", "UI"],
@@ -153,7 +153,7 @@
   {
     "id": "deadlock-escape",
     "title": "Deadlock Escape",
-    "cover": "img/DeadlockEscapeMain.jpg",
+    "cover": "img/DeadlockEscapeMain.webp",
     "room": "unity-wing",
     "tagline": "Puzzle de deslizar autos para liberar la salida",
     "tags": ["Unity", "Puzzle", "Programación", "Diseño de puzzles"],
@@ -166,7 +166,7 @@
   {
     "id": "lucio-clicker-simulator",
     "title": "Lucio Clicker Simulator",
-    "cover": "img/LucioClickerMain.jpg",
+    "cover": "img/LucioClickerMain.webp",
     "room": "game-room",
     "tagline": "Simulador clicker con huevos y mascotas en Roblox",
     "tags": ["Roblox Studio", "Game Design", "Modelado 3D"],
@@ -179,7 +179,7 @@
   {
     "id": "ar-foundation-vuforia",
     "title": "AR Foundation & Vuforia Projects",
-    "cover": "img/ARProjectsMain.jpg",
+    "cover": "img/ARProjectsMain.webp",
     "room": "unity-wing",
     "tagline": "Colección de apps de realidad aumentada",
     "tags": ["Unity", "AR Foundation", "Vuforia", "XR", "Apps móviles"],
@@ -192,7 +192,7 @@
   {
     "id": "kiwi-procedural-agents",
     "title": "Kiwi Procedural Agents",
-    "cover": "img/KiwiAgentsMain.jpg",
+    "cover": "img/KiwiAgentsMain.webp",
     "room": "unity-wing",
     "tagline": "Agentes procedurales en un ecosistema natural — Líder técnico",
     "tags": ["Unity", "Líder técnico", "IA", "Control de versiones"],
@@ -205,7 +205,7 @@
   {
     "id": "raboom",
     "title": "Rab-boom",
-    "cover": "img/RaboomMain.jpg",
+    "cover": "img/RaboomMain.webp",
     "room": "game-room",
     "tagline": "Conejo minero explosivo, acción top-down por rondas",
     "tags": ["Top Down", "Acción", "IA de enemigos", "Animación"],
@@ -220,7 +220,7 @@
   {
     "id": "kerberos-engine",
     "title": "Kerberos Engine",
-    "cover": "img/KerberosEngineMain.jpg",
+    "cover": "img/KerberosEngineMain.webp",
     "room": "lab",
     "tagline": "Motor de renderizado 3D propio en C++ y DirectX 11",
     "tags": ["C++", "DirectX 11", "Motor propio", "Programación gráfica"],
@@ -233,7 +233,7 @@
   {
     "id": "lucio-galaxy",
     "title": "Lucio Galaxy",
-    "cover": "img/LucioGalaxyMain.png",
+    "cover": "img/LucioGalaxyMain.webp",
     "room": "game-room",
     "tagline": "Plataformas con gravedad estilo Mario Galaxy",
     "tags": ["Plataformas", "Físicas de gravedad", "Prototipo"],
@@ -248,7 +248,7 @@
   {
     "id": "pcg-enemies",
     "title": "PCG Enemies",
-    "cover": "img/PCGEnemiesMain.jpg",
+    "cover": "img/PCGEnemiesMain.webp",
     "room": "unity-wing",
     "tagline": "Enemigos generados proceduralmente con funciones de fitness",
     "tags": ["Unity", "Generación procedural", "IA", "MVC"],
@@ -261,7 +261,7 @@
   {
     "id": "vessels",
     "title": "Vessels",
-    "cover": "img/VesselsMain.jpg",
+    "cover": "img/VesselsMain.webp",
     "room": "unreal-wing",
     "tagline": "Exploración en tercera persona en Unreal Engine 5",
     "tags": ["Unreal Engine 5", "Programación", "Diseño de niveles", "UI/UX"],
@@ -274,7 +274,7 @@
   {
     "id": "death-of-will",
     "title": "Death Of Will",
-    "cover": "img/DeathOfWillMain.jpg",
+    "cover": "img/DeathOfWillMain.webp",
     "room": "unreal-wing",
     "tagline": "FPS de horror liminal por rondas — desarrollo en solitario",
     "tags": ["Unreal Engine 5", "Solo dev", "IA", "Shaders", "FPS"],
@@ -289,7 +289,7 @@
   {
     "id": "memeception",
     "title": "Memeception",
-    "cover": "img/MemeceptionMain.png",
+    "cover": "img/MemeceptionMain.webp",
     "room": "game-room",
     "tagline": "Escapa de los memes — Global Game Jam 2024",
     "tags": ["Game Jam", "GGJ 2024", "Plataformas", "Shooter"],

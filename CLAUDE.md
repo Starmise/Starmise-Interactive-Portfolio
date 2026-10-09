@@ -45,12 +45,15 @@ No usar assets, logos, fuentes ni sonidos de Capcom/Resident Evil: solo se evoca
 
 ## Estado actual
 
-Fases 0–3 completadas (salvo la textura final del personaje). Hay dos salas de prueba: el **hall**
-(L con los 4 destacados, libro con la bio y puerta) y la **sala de guardado** (máquina de escribir con
-el contacto y libreta de curiosidades). Hay título con carga, menú de pausa (inventario, mapa,
-opciones), fichas navegables y soporte de mando. **Pendiente (TODO del usuario):** textura final del
-personaje y exportar `player.glb` desde Blender con `Idle`/`Walk`/`Run` (PLAN.md §5). El `player.glb`
-actual es **provisional** (solo `Walk`). Siguiente: Fase 4 (modelar las salas reales).
+Fases 0–4 completadas (salvo la textura final del personaje y la galería real). Hay **seis salas**
+(mansión): Hall (vitrina con los 4 destacados, diario con la bio, TV con el DemoReel), Ala Unreal
+(cuadros), Ala Unity (escritorios con CRT), Laboratorio (estaciones CRT), Sala de juegos (máquinas
+arcade) y Sala de guardado (contacto y curiosidades); cada proyecto es un objeto con su portada. Hay
+título con carga, menú de pausa (inventario, mapa, opciones), fichas navegables (con galería y video)
+y soporte de mando. **Pendiente (TODO del usuario):** textura final del personaje y exportar
+`player.glb` desde Blender con `Idle`/`Walk`/`Run` (PLAN.md §5) — el actual es **provisional** (solo
+`Walk`); imágenes reales para `profile.gallery` (hoy `GalleryExample*`). Siguiente: revisar las salas
+con el usuario y la Fase 5 (modo lista, táctil, rendimiento).
 
 Controles: WASD/flechas o stick mover · Shift/X correr · E/Enter/A examinar y abrir puertas ·
 Esc/Tab/Start menú · M/Select mapa · I inventario · Q/E o LB/RB pestañas y fichas · F3 (o `º`)
@@ -63,6 +66,8 @@ npm install      # o npm ci
 npm run dev      # servidor local con recarga
 npm run build    # genera dist/
 npm run preview  # sirve dist/ para probar el build
+npm run images   # regenera public/img/*.webp y public/img/thumb/ desde art/img/ (usa sharp)
+blender -b -P art/rooms/build_rooms.py [-- hall lab …]   # regenera las salas (.blend + .glb)
 ```
 
 ## Estructura
@@ -70,21 +75,25 @@ npm run preview  # sirve dist/ para probar el build
 ```
 index.html         Punto de entrada de Vite (HUD + contenedor de UI)
 vite.config.js     base './', salida en dist/
-package.json       three + three-mesh-bvh + vite
+package.json       three + three-mesh-bvh + vite (+ sharp, solo para npm run images)
+scripts/optimize-images.mjs  art/img/* → public/img/<nombre>.webp (≤1280 px) + public/img/thumb/ (≤256 px)
 .github/workflows/deploy.yml  Deploy a GitHub Pages
 public/            Se copia tal cual a dist/
-  img/             Portadas e imágenes (33 archivos, ~33 MB); los JSON las referencian como img/...
+  img/             Imágenes WebP generadas (~1.2 MB); los JSON las referencian como img/<nombre>.webp
+  img/thumb/       Miniaturas ≤256 px (texturas de portada en las salas, galerías)
   models/player.glb  Personaje (PROVISIONAL: textura placeholder, solo la caminata "Walk")
-  models/rooms/test_room.glb, save_room.glb  Salas de prueba (generadas por art/rooms/build_test_room.py)
+  models/rooms/    hall, unreal_wing, unity_wing, lab, game_room, save_room (.glb, de build_rooms.py)
 src/
   main.js          Arranque y bucle: título, salas, transiciones, interacción, pausa
   style.css        HUD, título, menú de pausa y fichas "Archivo"
   core/input.js    Teclado + mando (Gamepad API): acciones de juego y de menú
   core/settings.js Opciones del jugador (localStorage) con suscripción a cambios
+  core/assets.js   Rutas de miniaturas (thumbUrl) y de YouTube (miniatura, embed)
   render/ps1Material.js  Vertex snapping + mapeo afín (onBeforeCompile), conversión a Lambert
   render/ps1Renderer.js  Render a 240 px + post-proceso 15 bits con dithering
   world/roomManager.js   rooms.json → carga/caché de salas, precarga de vecinas
-  world/loadRoom.js      Carga un GLB de sala e interpreta COL_/CAM_/TRG_CAM_/INT_/DOOR_/SPAWN_
+  world/loadRoom.js      Carga un GLB de sala e interpreta COL_/CAM_/TRG_CAM_/INT_/DOOR_/SPAWN_ y las portadas
+  world/videoScreen.js   Pantalla de TV animada (DemoReel) como CanvasTexture
   world/collision.js     Cápsula contra COL_* con three-mesh-bvh
   world/cameraDirector.js  Cámara activa según TRG_CAM_* (con histéresis)
   world/interaction.js   Qué INT_/DOOR_ está al alcance y de frente
@@ -100,15 +109,16 @@ src/
   data/
     projects.json  FUENTE ÚNICA de los proyectos (22, con su sala en `room`)
     profile.json   Bio, estudio, DemoReel, habilidades, "qué hago", curiosidades, galería, contacto
-    rooms.json     Salas: nombre, descripción y GLB (null = aún no construida)
+    rooms.json     Salas: nombre, descripción, GLB (null = aún no construida), niebla y luz ambiente
     README.md      Esquema de los JSON y script de validación
 art/character/     Fuentes del personaje (no se publican)
   PSX_Char_Male_Base.fbx            Personaje PS1 (19 huesos, caminata de Mixamo, sin textura)
   PSX_Char_Male_UV_1024.png         Plantilla de UVs para pintar la textura
   PSX_Char_Male_Placeholder_1024.png / _256.png  Textura placeholder (base para pintar encima)
+art/img/           Imágenes originales en alta (~33 MB; fuente de npm run images, no se publican)
 art/rooms/
-  build_test_room.py  Script de Blender que genera las dos salas de prueba (.blend + .glb)
-  test_room.blend, save_room.blend  Fuentes editables (guardadas con Blender 5.2)
+  build_rooms.py     Script de Blender que genera las seis salas (.blend + .glb)
+  <sala>.blend       Fuentes editables (guardadas con Blender 5.2)
 CLAUDE.md          Este archivo
 PLAN.md            Plan del proyecto (fases, decisiones, diseño técnico)
 ```
@@ -117,8 +127,13 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
 
 ## Notas y trampas conocidas
 
-- Las imágenes de `profile.gallery` (`GalleryExample*.png`) son marcadores de posición
-  heredados del original.
+- Las imágenes de `profile.gallery` (`GalleryExample*`) son marcadores de posición
+  heredados del original (aún no se muestran en el juego).
+- Imágenes: el original va en `art/img/`, se corre `npm run images` y el JSON usa `img/<nombre>.webp`.
+  La miniatura (`img/thumb/<nombre>.webp`) se deriva sola con `thumbUrl()`.
+- Con el *vertex snapping*, dos superficies a pocos cm "pelean" en profundidad. Por eso el cascarón de
+  cada sala (`Room_Shell*`) se dibuja con *polygon offset*; para objetos pegados entre sí (que no sean
+  el cascarón), separarlos ≥3 cm.
 - `.gitattributes` normaliza los finales de línea a LF. En el repo original, Windows mostraba
   casi todos los archivos como modificados solo por CRLF/LF; aquí no debería pasar.
 - Las sesiones en la nube trabajan en la copia local desde una VM Linux: **no dejar
@@ -127,9 +142,10 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
 - La herramienta para escribir archivos en la copia local trata `.github/` como protegido:
   el workflow lo coloca el usuario a mano.
 - Los `.blend` de `art/rooms/` se guardaron con Blender 5.2; si tu Blender es más viejo y no lo abre, corre
-  `art/rooms/build_test_room.py` desde tu Blender (pestaña Scripting) para regenerarlo.
+  `art/rooms/build_rooms.py` desde tu Blender (pestaña Scripting) para regenerarlos. Ojo: el script
+  reconstruye las salas desde cero; si editas un `.blend` a mano, exporta su GLB tú y no regeneres esa sala.
 - Para probar en la nube: Blender está disponible como módulo (`pip install bpy`) y el Chromium
   preinstalado sirve con Playwright (`executablePath: '/opt/pw-browsers/chromium'`, flags de swiftshader).
   Google Fonts no carga desde ahí; no es un error del proyecto.
-- Las imágenes pesan bastante (~33 MB). Para la versión 3D conviene generar versiones
-  optimizadas (WebP/AVIF, texturas más pequeñas) en lugar de cargar las originales.
+- Tras cambiar `package.json` (p. ej. al añadir `sharp`), correr `npm install` en Windows antes de
+  `npm run dev`.

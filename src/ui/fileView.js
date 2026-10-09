@@ -1,8 +1,13 @@
+import { thumbUrl, youtubeEmbed } from '../core/assets.js';
+
 /**
  * "Archivo": un documento mecanografiado sobre la escena (ficha de proyecto, diario,
  * contacto…). Es HTML normal (seleccionable, accesible) y una capa de la UiStack:
  * arriba/abajo desplazan el texto, LB/RB o Q/E pasan al documento anterior/siguiente
  * cuando se abrió desde una lista, y "volver" lo cierra.
+ *
+ * Los videos (doc.video) muestran primero su miniatura; el reproductor de YouTube solo se
+ * incrusta al pulsar "Reproducir" y se quita al cambiar de documento o cerrar.
  */
 export class FileView {
   constructor(root, stack, { baseUrl = './' } = {}) {
@@ -22,7 +27,9 @@ export class FileView {
           <p class="file-doc__tagline" data-f="tagline"></p>
         </header>
         <figure class="file-doc__cover" data-f="figure"><img data-f="image" alt="" /></figure>
+        <div class="file-doc__video" data-f="video"></div>
         <div data-f="sections"></div>
+        <ul class="file-doc__gallery" data-f="gallery" aria-label="Galería"></ul>
         <ul class="file-doc__tags" data-f="tags" aria-label="Etiquetas"></ul>
         <div class="file-doc__links" data-f="links"></div>
         <footer class="file-doc__foot">
@@ -46,6 +53,7 @@ export class FileView {
         });
       },
       onHide: () => {
+        this.f.video.replaceChildren(); // detiene el video si estaba sonando
         this.el.classList.remove('is-open');
         this.el.hidden = true;
         this.sequence = null;
@@ -105,6 +113,29 @@ export class FileView {
     return true;
   }
 
+  #renderVideo(video, title) {
+    const box = this.f.video;
+    box.hidden = !video;
+    if (!video) return box.replaceChildren();
+    const play = el('button');
+    play.type = 'button';
+    play.className = 'file-doc__play';
+    play.setAttribute('aria-label', `Reproducir: ${title}`);
+    const poster = el('img');
+    poster.src = /^https?:/.test(video.poster) ? video.poster : this.baseUrl + video.poster;
+    poster.alt = '';
+    play.append(poster, el('span', '▶ Reproducir', null, 'file-doc__play-label'));
+    play.addEventListener('click', () => {
+      const frame = el('iframe');
+      frame.src = youtubeEmbed(video);
+      frame.title = title;
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      box.replaceChildren(frame);
+    });
+    box.replaceChildren(play);
+  }
+
   #render(doc) {
     const { f } = this;
     f.kicker.textContent = doc.kicker ?? '';
@@ -120,6 +151,8 @@ export class FileView {
       f.image.removeAttribute('src');
     }
 
+    this.#renderVideo(doc.video, doc.title);
+
     f.sections.replaceChildren(
       ...doc.sections.map((s) => {
         const section = document.createElement('section');
@@ -131,6 +164,23 @@ export class FileView {
         return section;
       }),
     );
+
+    f.gallery.replaceChildren(
+      ...(doc.gallery ?? []).map((src, i) => {
+        const a = el('a');
+        a.href = this.baseUrl + src;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.setAttribute('aria-label', `Imagen ${i + 1} de ${doc.title} (se abre en otra pestaña)`);
+        const img = el('img');
+        img.src = this.baseUrl + thumbUrl(src);
+        img.alt = '';
+        img.loading = 'lazy';
+        a.append(img);
+        return el('li', null, [a]);
+      }),
+    );
+    f.gallery.hidden = !doc.gallery?.length;
 
     f.tags.replaceChildren(...(doc.tags ?? []).map((t) => el('li', t)));
     f.tags.hidden = !doc.tags?.length;
@@ -156,9 +206,10 @@ export class FileView {
   }
 }
 
-function el(tag, text, children) {
+function el(tag, text, children, className) {
   const node = document.createElement(tag);
   if (text != null) node.textContent = text;
+  if (className) node.className = className;
   if (children) node.append(...children);
   return node;
 }

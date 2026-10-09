@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { toPs1Material } from '../render/ps1Material.js';
 import { CollisionWorld } from './collision.js';
+import { createVideoScreen } from './videoScreen.js';
+import { thumbUrl } from '../core/assets.js';
 
 /**
  * Carga una sala exportada desde Blender e interpreta la convención de nombres
@@ -11,11 +13,13 @@ import { CollisionWorld } from './collision.js';
  *   CAM_<n>          → cámara fija
  *   TRG_CAM_<n>[_x]  → volumen(es) que activan CAM_<n> (se ocultan)
  *   INT_<id>         → objeto examinable: proyecto de projects.json o documento del perfil
- *                      (about, contact, trivia); las mallas con MAT_Cover reciben la portada
+ *                      (about, contact, trivia, demoreel); las mallas con MAT_Cover reciben la
+ *                      portada del proyecto (miniatura en baja) o, si es un video, una pantalla animada
  *   DOOR_<roomId>    → puerta hacia otra sala
  *   SPAWN_<roomId>   → punto de aparición al llegar desde esa sala (SPAWN_default al inicio)
  *
- * `resolve(id)` traduce el id de un INT_ a { kind, label, project?, document() } o null.
+ * `resolve(id)` traduce el id de un INT_ a { kind, label, verb?, project?, video?, document() } o null.
+ * La sala devuelta tiene `update(dt)` para animar sus pantallas.
  * `doorLabel(roomId)` da el nombre visible de la sala de destino de una puerta.
  */
 export async function loadRoom(url, { resolve = () => null, doorLabel = (id) => id, baseUrl = './', manager } = {}) {
@@ -32,10 +36,15 @@ export async function loadRoom(url, { resolve = () => null, doorLabel = (id) => 
     helpers: [], // COL_/TRG_ para el modo depuración
     doorTexture: null,
     collision: null,
+    animated: [], // { texture, update(dt) } — pantallas de video
+    update(dt) {
+      for (const a of this.animated) a.update(dt);
+    },
   };
 
   const colliders = [];
   const materialCache = new Map();
+  const shellCache = new Map();
   const pending = [];
 
   root.traverse((obj) => {
@@ -89,21 +98,33 @@ export async function loadRoom(url, { resolve = () => null, doorLabel = (id) => 
     }
 
     if (obj.isMesh) {
-      obj.material = convertMaterial(obj.material, materialCache);
+      // El "cascarón" (piso, muros y techo) se empuja un poco hacia atrás en profundidad: con el
+      // vertex snapping, lo que va pegado a él (cuadros, ventanas, alfombras) parpadearía.
+      const shell = name.startsWith('Room_Shell');
+      obj.material = convertMaterial(obj.material, shell ? shellCache : materialCache, shell);
       if (!room.doorTexture && obj.material.name === 'MAT_Door') room.doorTexture = obj.material.map;
     }
   });
   pending.forEach((fn) => fn());
 
-  // Portadas: cada INT_ de proyecto con un hijo de material MAT_Cover recibe su imagen en baja.
+  // Portadas: cada INT_ con un hijo de material MAT_Cover recibe la portada del proyecto en baja
+  // (su miniatura) o, si el documento es un video, una pantalla de TV animada.
   await Promise.all(
     room.interactables.map(async (it) => {
-      if (!it.project?.cover) return;
       let tex;
-      try {
-        tex = await loadCoverTexture(baseUrl + it.project.cover);
-      } catch (err) {
-        console.warn('[room] no se pudo cargar la portada', it.project.cover, err);
+      if (it.video) {
+        const { thumbnail, label } = it.video;
+        const screen = createVideoScreen({ label, thumbnail: /^https?:/.test(thumbnail) ? thumbnail : baseUrl + thumbnail });
+        room.animated.push(screen);
+        tex = screen.texture;
+      } else if (it.project?.cover) {
+        try {
+          tex = await loadCoverTexture(baseUrl + thumbUrl(it.project.cover));
+        } catch (err) {
+          console.warn('[room] no se pudo cargar la portada', it.project.cover, err);
+          return;
+        }
+      } else {
         return;
       }
       it.object.traverse((o) => {
@@ -128,14 +149,22 @@ function hideAsHelper(mesh, color, room) {
   room.helpers.push(mesh);
 }
 
-function convertMaterial(material, cache) {
-  if (Array.isArray(material)) return material.map((m) => convertMaterial(m, cache));
-  if (!cache.has(material)) cache.set(material, toPs1Material(material));
+function convertMaterial(material, cache, pushBack = false) {
+  if (Array.isArray(material)) return material.map((m) => convertMaterial(m, cache, pushBack));
+  if (!cache.has(material)) {
+    const mat = toPs1Material(material);
+    if (pushBack) {
+      mat.polygonOffset = true;
+      mat.polygonOffsetFactor = 4;
+      mat.polygonOffsetUnits = 4;
+    }
+    cache.set(material, mat);
+  }
   return cache.get(material);
 }
 
 /**
- * Reduce la portada a 128×96 (contenida, con fondo negro) y la cuantiza a 15 bits,
+ * Reduce la portada (miniatura de ≤256 px) a 128×96 (contenida, con fondo negro) y la cuantiza a 15 bits,
  * para que parezca una textura de la época sin cargar la imagen en alta.
  */
 async function loadCoverTexture(src) {

@@ -1,9 +1,12 @@
+import { youtubeThumb } from '../core/assets.js';
+
 /**
  * Convierte los datos (projects.json, profile.json) en "documentos" que muestra FileView.
  * Ningún texto del portafolio se escribe aquí: solo etiquetas de la interfaz.
  *
- * Documento: { kicker, title, tagline?, image?, imageAlt?, sections: [{ heading, paragraphs?, items? }],
- *              tags?, links?: [{ label, href }] }
+ * Documento: { kicker, title, tagline?, image?, imageAlt?, video?: { youtubeId, embedUrl?, poster },
+ *              sections: [{ heading, paragraphs?, items? }], gallery?: string[], tags?,
+ *              links?: [{ label, href }] }
  */
 export function projectDocument(project, index) {
   return {
@@ -17,6 +20,7 @@ export function projectDocument(project, index) {
       { heading: 'Proceso', paragraphs: [project.process] },
       { heading: 'Mi rol', paragraphs: [project.role] },
     ].filter((s) => s.paragraphs.every(Boolean)),
+    gallery: project.gallery ?? [],
     tags: project.tags ?? [],
     links: project.externalLink ? [{ label: project.externalLabel || 'Ver proyecto', href: project.externalLink }] : [],
   };
@@ -59,6 +63,16 @@ export const PROFILE_DOCUMENTS = {
     linkLayout: 'list',
     promptLabel: 'Máquina de escribir',
   }),
+  demoreel: (p) => ({
+    kicker: 'Videocasete',
+    title: p.demoReel.title,
+    tagline: `${p.name} · ${p.title}`,
+    video: { ...p.demoReel, poster: p.demoReel.thumbnail ?? youtubeThumb(p.demoReel.youtubeId) },
+    sections: [],
+    links: [{ label: 'Ver en YouTube', href: `https://www.youtube.com/watch?v=${p.demoReel.youtubeId}` }],
+    promptLabel: 'DemoReel',
+    verb: 'Ver',
+  }),
   trivia: (p) => ({
     kicker: 'Libreta',
     title: 'Curiosidades',
@@ -70,7 +84,8 @@ export const PROFILE_DOCUMENTS = {
 };
 
 /**
- * Resuelve el id de un INT_ a { label, open() → documento }, o null si no existe.
+ * Resuelve el id de un INT_ a { kind, label, verb?, project?, video?, document() }, o null si no existe.
+ * `video` (solo documentos con video): { thumbnail, label } para la pantalla de TV de la sala.
  */
 export function resolveInteractable(id, { projects, profile }) {
   const index = projects.findIndex((p) => p.id === id);
@@ -81,7 +96,13 @@ export function resolveInteractable(id, { projects, profile }) {
   const make = PROFILE_DOCUMENTS[id];
   if (make) {
     const doc = make(profile);
-    return { kind: 'profile', label: doc.promptLabel ?? doc.title, document: () => doc };
+    return {
+      kind: 'profile',
+      label: doc.promptLabel ?? doc.title,
+      verb: doc.verb,
+      video: doc.video && { thumbnail: doc.video.poster, label: 'DEMO REEL' },
+      document: () => doc,
+    };
   }
   return null;
 }

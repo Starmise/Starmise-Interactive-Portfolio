@@ -138,6 +138,7 @@ export class PauseMenu {
     const list = h('div', null, 'pause__list');
     const docs = [
       PROFILE_DOCUMENTS.about(p),
+      PROFILE_DOCUMENTS.demoreel(p),
       ...p.whatIDo.map(whatIDoDocument),
       PROFILE_DOCUMENTS.trivia(p),
       PROFILE_DOCUMENTS.contact(p),
@@ -179,7 +180,13 @@ export class PauseMenu {
 
   #roomDocuments(roomId) {
     const docs = (list) => list.map((p) => projectDocument(p, this.projects.indexOf(p)));
-    if (roomId === 'hall') return docs(this.projects.filter((p) => p.featured));
+    if (roomId === 'hall') {
+      return [
+        ...docs(this.projects.filter((p) => p.featured)),
+        PROFILE_DOCUMENTS.about(this.profile),
+        PROFILE_DOCUMENTS.demoreel(this.profile),
+      ];
+    }
     if (roomId === 'save-room') return [PROFILE_DOCUMENTS.contact(this.profile), PROFILE_DOCUMENTS.trivia(this.profile)];
     return docs(this.projects.filter((p) => p.room === roomId));
   }
