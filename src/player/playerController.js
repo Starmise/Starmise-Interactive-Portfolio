@@ -55,7 +55,14 @@ export class PlayerController {
     this.camera = camera;
     const { x, y } = this.input.axes();
     if (x === 0 && y === 0) this.#adoptCameraBasis();
-    else this.latchedInput = `${x},${y}`;
+    else this.latchedInput = Math.round(Math.atan2(x, y) / (Math.PI / 4));
+  }
+
+  /** Cambio de sala: adoptar la cámara nueva sin conservar la dirección anterior. */
+  snapCamera(camera) {
+    this.camera = camera;
+    this.latchedInput = null;
+    this.#adoptCameraBasis();
   }
 
   setMode(mode) {
@@ -112,7 +119,8 @@ export class PlayerController {
       this.#adoptCameraBasis();
       return 0;
     }
-    const key = `${x},${y}`;
+    // Dirección cuantizada a 8 sectores (con stick analógico no se suelta el enganche por ruido).
+    const key = Math.round(Math.atan2(x, y) / (Math.PI / 4));
     if (this.latchedInput !== null && this.latchedInput !== key) {
       this.latchedInput = null;
       this.#adoptCameraBasis();
@@ -123,7 +131,9 @@ export class PlayerController {
     this.yaw = wrapAngle(this.yaw + Math.sign(diff) * Math.min(Math.abs(diff), TUNING.turnSpeed * dt));
     // Si hay que dar media vuelta, girar casi en el sitio antes de avanzar.
     const alignment = Math.max(0, Math.cos(diff));
-    return (running ? TUNING.runSpeed : TUNING.walkSpeed) * (0.25 + 0.75 * alignment);
+    // Con stick analógico, inclinarlo poco = caminar despacio.
+    const tilt = running ? 1 : Math.max(0.35, Math.min(1, Math.hypot(x, y)));
+    return (running ? TUNING.runSpeed : TUNING.walkSpeed) * tilt * (0.25 + 0.75 * alignment);
   }
 
   #updateTank(dt, x, y, running) {
@@ -134,15 +144,15 @@ export class PlayerController {
       if (q.t >= 1) this.quickTurn = null;
       return { targetSpeed: 0, turning: true };
     }
-    if (y < 0 && running && this.#quickTurnPressed()) {
+    if (y < -0.5 && running && this.#quickTurnPressed()) {
       this.quickTurn = { from: this.yaw, t: 0, sign: x > 0 ? -1 : 1 };
       return { targetSpeed: 0, turning: true };
     }
     this.yaw = wrapAngle(this.yaw - x * TUNING.tankTurnSpeed * dt);
     let targetSpeed = 0;
-    if (y > 0) targetSpeed = running ? TUNING.runSpeed : TUNING.walkSpeed;
-    else if (y < 0) targetSpeed = -TUNING.backSpeed;
-    return { targetSpeed, turning: x !== 0 && y === 0 };
+    if (y > 0.3) targetSpeed = running ? TUNING.runSpeed : TUNING.walkSpeed;
+    else if (y < -0.3) targetSpeed = -TUNING.backSpeed;
+    return { targetSpeed, turning: Math.abs(x) > 0.1 && targetSpeed === 0 };
   }
 
   /** Giro rápido: se dispara al pulsar correr o atrás mientras se mantiene el otro. */

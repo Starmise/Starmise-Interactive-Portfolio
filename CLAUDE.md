@@ -39,21 +39,22 @@ subir también el contenido completo actualizado a su documento del proyecto**
 
 Resumen de decisiones: tercera persona con cámaras fijas · Three.js vanilla · Vite
 (`base: './'`) · salas modeladas en Blender con convención de nombres (`COL_`, `CAM_`,
-`TRG_CAM_`, `INT_<projectId>`, `DOOR_`, `SPAWN_`) · todo el texto sale de `src/data/` ·
+`TRG_CAM_`, `INT_<id>`, `DOOR_`, `SPAWN_`) · todo el texto sale de `src/data/` ·
 GitHub Pages vía Actions (`.github/workflows/deploy.yml`: `npm ci` → `npm run build` → sube `dist/`).
 No usar assets, logos, fuentes ni sonidos de Capcom/Resident Evil: solo se evoca el estilo.
 
 ## Estado actual
 
-Fases 0 y 1 completadas (salvo la textura final del personaje). **Fase 2 implementada, pendiente de
-revisión con el usuario:** sala de prueba en L con render PS1, controlador (moderno + tanque),
-colisiones, 3 cámaras fijas y 4 pedestales `INT_` que abren la ficha del proyecto. **Pendiente (TODO
-del usuario):** textura final del personaje y exportar `player.glb` desde Blender con `Idle`/`Walk`/`Run`
-(PLAN.md §5). El `player.glb` actual es **provisional** (solo `Walk`). Siguiente: ajustes de la
-revisión y Fase 3.
+Fases 0–3 completadas (salvo la textura final del personaje). Hay dos salas de prueba: el **hall**
+(L con los 4 destacados, libro con la bio y puerta) y la **sala de guardado** (máquina de escribir con
+el contacto y libreta de curiosidades). Hay título con carga, menú de pausa (inventario, mapa,
+opciones), fichas navegables y soporte de mando. **Pendiente (TODO del usuario):** textura final del
+personaje y exportar `player.glb` desde Blender con `Idle`/`Walk`/`Run` (PLAN.md §5). El `player.glb`
+actual es **provisional** (solo `Walk`). Siguiente: Fase 4 (modelar las salas reales).
 
-Controles del prototipo: WASD/flechas mover · Shift correr · E examinar · C cambiar controles ·
-P efectos PS1 · F3 (o `º`) depuración. En la consola del navegador, `__game` expone el estado.
+Controles: WASD/flechas o stick mover · Shift/X correr · E/Enter/A examinar y abrir puertas ·
+Esc/Tab/Start menú · M/Select mapa · I inventario · Q/E o LB/RB pestañas y fichas · F3 (o `º`)
+depuración. En la consola del navegador, `__game` expone el estado.
 
 ## Comandos
 
@@ -74,32 +75,40 @@ package.json       three + three-mesh-bvh + vite
 public/            Se copia tal cual a dist/
   img/             Portadas e imágenes (33 archivos, ~33 MB); los JSON las referencian como img/...
   models/player.glb  Personaje (PROVISIONAL: textura placeholder, solo la caminata "Walk")
-  models/rooms/test_room.glb  Sala de prueba de la Fase 2 (generada por art/rooms/build_test_room.py)
+  models/rooms/test_room.glb, save_room.glb  Salas de prueba (generadas por art/rooms/build_test_room.py)
 src/
-  main.js          Arranque y bucle: carga sala + jugador, cámaras, interacción, toggles
-  style.css        HUD y ficha "Archivo"
-  core/input.js    Teclado (acciones mantenidas y pulsaciones)
+  main.js          Arranque y bucle: título, salas, transiciones, interacción, pausa
+  style.css        HUD, título, menú de pausa y fichas "Archivo"
+  core/input.js    Teclado + mando (Gamepad API): acciones de juego y de menú
+  core/settings.js Opciones del jugador (localStorage) con suscripción a cambios
   render/ps1Material.js  Vertex snapping + mapeo afín (onBeforeCompile), conversión a Lambert
   render/ps1Renderer.js  Render a 240 px + post-proceso 15 bits con dithering
-  world/loadRoom.js      Carga un GLB de sala e interpreta COL_/CAM_/TRG_CAM_/INT_/SPAWN_/DOOR_
+  world/roomManager.js   rooms.json → carga/caché de salas, precarga de vecinas
+  world/loadRoom.js      Carga un GLB de sala e interpreta COL_/CAM_/TRG_CAM_/INT_/DOOR_/SPAWN_
   world/collision.js     Cápsula contra COL_* con three-mesh-bvh
   world/cameraDirector.js  Cámara activa según TRG_CAM_* (con histéresis)
-  world/interaction.js   Qué INT_ está al alcance y de frente
+  world/interaction.js   Qué INT_/DOOR_ está al alcance y de frente
+  world/doorTransition.js  Animación de puerta / fundido que oculta la carga
   player/loadPlayer.js   Carga el GLB del personaje, materiales PS1, quita root motion horizontal
-  player/playerController.js  Movimiento (moderno/tanque), colisión, animación Idle/Walk/Run, TUNING
-  ui/fileView.js   Ficha del proyecto (diálogo HTML accesible)
-  ui/hud.js        Prompt "Examinar", ayuda de controles, avisos
+  player/playerController.js  Movimiento (moderno/tanque, analógico), colisión, animación, TUNING
+  ui/uiStack.js    Pila de capas de UI y navegación (teclado/mando)
+  ui/titleScreen.js  Carga + título + menú principal
+  ui/pauseMenu.js  Inventario, mapa y opciones
+  ui/fileView.js   Documento "Archivo" (fichas de proyecto y del perfil)
+  ui/documents.js  Convierte projects.json/profile.json en documentos; resuelve INT_<id>
+  ui/hud.js        Prompt "Examinar/Abrir", ayuda de controles, avisos
   data/
-    projects.json  FUENTE ÚNICA de los proyectos (22, copiados del original)
+    projects.json  FUENTE ÚNICA de los proyectos (22, con su sala en `room`)
     profile.json   Bio, estudio, DemoReel, habilidades, "qué hago", curiosidades, galería, contacto
-    README.md      Esquema de ambos JSON y script de validación
+    rooms.json     Salas: nombre, descripción y GLB (null = aún no construida)
+    README.md      Esquema de los JSON y script de validación
 art/character/     Fuentes del personaje (no se publican)
   PSX_Char_Male_Base.fbx            Personaje PS1 (19 huesos, caminata de Mixamo, sin textura)
   PSX_Char_Male_UV_1024.png         Plantilla de UVs para pintar la textura
   PSX_Char_Male_Placeholder_1024.png / _256.png  Textura placeholder (base para pintar encima)
 art/rooms/
-  build_test_room.py  Script de Blender que genera la sala de prueba (.blend + .glb)
-  test_room.blend     Fuente editable de la sala (guardado con Blender 5.2)
+  build_test_room.py  Script de Blender que genera las dos salas de prueba (.blend + .glb)
+  test_room.blend, save_room.blend  Fuentes editables (guardadas con Blender 5.2)
 CLAUDE.md          Este archivo
 PLAN.md            Plan del proyecto (fases, decisiones, diseño técnico)
 ```
@@ -117,7 +126,7 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
   y `npm run dev` fallaría en Windows). Si se instala para probar, borrarlo al terminar.
 - La herramienta para escribir archivos en la copia local trata `.github/` como protegido:
   el workflow lo coloca el usuario a mano.
-- `test_room.blend` se guardó con Blender 5.2; si tu Blender es más viejo y no lo abre, corre
+- Los `.blend` de `art/rooms/` se guardaron con Blender 5.2; si tu Blender es más viejo y no lo abre, corre
   `art/rooms/build_test_room.py` desde tu Blender (pestaña Scripting) para regenerarlo.
 - Para probar en la nube: Blender está disponible como módulo (`pip install bpy`) y el Chromium
   preinstalado sirve con Playwright (`executablePath: '/opt/pw-browsers/chromium'`, flags de swiftshader).

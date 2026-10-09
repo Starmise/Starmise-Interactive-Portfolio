@@ -4,6 +4,8 @@ Toda la información del portafolio vive en estos dos JSON. La escena 3D y cualq
 alternativa deben **leer de aquí** en lugar de tener textos escritos a mano en el código.
 
 - `projects.json` — los proyectos (copiado del portafolio original `About-Me-Website`).
+- `rooms.json` — salas del juego: `id`, `name`, `description` y `model` (GLB en `public/`,
+  o `null` si la sala aún no está construida: el mapa la muestra como "Próximamente").
 - `profile.json` — datos personales: bio, estudio, DemoReel, habilidades, "qué hago",
   curiosidades, galería y contacto (extraídos de `IndexP3.html` e `indexMin.html` del original).
 
@@ -18,6 +20,7 @@ Es un **array** de objetos:
 | `id`            | `string`   | Sí          | Identificador único en `kebab-case`. Sin espacios ni repeticiones. |
 | `title`         | `string`   | Sí          | Nombre visible del proyecto. |
 | `cover`         | `string`   | Sí          | Ruta de la portada (p. ej. `img/LucioGalaxyMain.png`). |
+| `room`          | `string`   | Sí          | Sala donde vive el proyecto (`id` de `rooms.json`). El mapa agrupa por este campo. |
 | `tagline`       | `string`   | No          | Frase corta de gancho. |
 | `tags`          | `string[]` | No          | Tecnologías/roles (chips, filtros). Puede ir vacío `[]`. |
 | `description`   | `string`   | Sí          | Descripción del proyecto. |
@@ -45,6 +48,12 @@ Los textos `description` y `process` se migraron verbatim de las páginas origin
 | `gallery`     | Imágenes de la galería. **Ojo:** son marcadores de posición (`GalleryExample*.png`) heredados del original. |
 | `contact`     | Enlaces `{ label, type, url }`. |
 | `classicSite` | URL del portafolio original, para enlazarlo como "versión clásica". |
+
+## Objetos de las salas
+
+En Blender, `INT_<id>` enlaza un objeto con un proyecto (`id` de `projects.json`) o con un
+documento del perfil: `about` (diario/bio), `contact` (máquina de escribir) o `trivia`
+(curiosidades). Las puertas son `DOOR_<roomId>` con un `id` de `rooms.json`.
 
 ## Añadir o editar contenido
 

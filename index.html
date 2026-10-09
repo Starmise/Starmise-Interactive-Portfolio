@@ -16,18 +16,20 @@
   <body>
     <div id="app"></div>
 
-    <div id="hud">
-      <p id="prompt" hidden><kbd>E</kbd> Examinar · <span data-label></span></p>
+    <div id="hud" hidden>
+      <p id="prompt" hidden><kbd data-key>E</kbd> <span data-verb>Examinar</span> · <span data-label></span></p>
       <p id="toast" role="status" hidden></p>
       <div id="hud-bottom">
         <p id="help"></p>
-        <p id="status">Cargando…</p>
-        <a href="https://starmise.github.io/About-Me-Website/" target="_blank" rel="noopener">Versión clásica</a>
+        <p id="status"></p>
       </div>
     </div>
 
+    <div id="fade" hidden></div>
+    <p id="door-loading" hidden>Cargando…</p>
     <div id="ui"></div>
 
+    <noscript>Este portafolio necesita JavaScript. Versión sin 3D: https://starmise.github.io/About-Me-Website/</noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
