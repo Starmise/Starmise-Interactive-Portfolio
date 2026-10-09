@@ -48,10 +48,10 @@ Los textos `description` y `process` se migraron verbatim de las páginas origin
 
 ## Añadir o editar contenido
 
-1. Copiar imágenes nuevas a `src/img/`.
+1. Copiar imágenes nuevas a `public/img/` (las rutas `img/...` de los JSON apuntan ahí).
 2. Editar el JSON correspondiente (sin comas finales; `id` único en `projects.json`).
 3. Validar ambos archivos y que no falten imágenes:
 
 ```bash
-node -e "const p=require('./src/data/projects.json'),f=require('./src/data/profile.json'),fs=require('fs');const r=[...p.flatMap(x=>[x.cover,...(x.gallery||[])]),f.logo,f.studio.icon,...f.whatIDo.map(w=>w.image),f.trivia.image,...f.gallery];console.log('faltantes:',r.filter(x=>!fs.existsSync('src/'+x)))"
+node -e "const p=require('./src/data/projects.json'),f=require('./src/data/profile.json'),fs=require('fs');const r=[...p.flatMap(x=>[x.cover,...(x.gallery||[])]),f.logo,f.studio.icon,...f.whatIDo.map(w=>w.image),f.trivia.image,...f.gallery];console.log('faltantes:',r.filter(x=>!fs.existsSync('public/'+x)))"
 ```
