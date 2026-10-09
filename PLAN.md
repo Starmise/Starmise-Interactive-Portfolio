@@ -86,18 +86,19 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 - [x] 3 cámaras fijas que cambian con volúmenes `TRG_CAM_*` (con histéresis por solapamiento).
 - [x] Objetos `INT_<id>` que abren la ficha del proyecto real desde `projects.json` (los 4 destacados).
 - [x] Sala de prueba hecha en Blender (cajas texturizadas): `art/rooms/build_test_room.py` → `test_room.blend` + `public/models/rooms/test_room.glb`.
-- [ ] **Revisión con el usuario:** ¿se siente bien? Ajustar antes de seguir.
+- [x] **Revisión con el usuario:** aprobada el 2026-10-09 (se pasó a la Fase 3 sin ajustes).
 
 ### Fase 3 — Sistemas
-- [ ] Puertas `DOOR_<sala>` + transición con animación de puerta y precarga.
-- [ ] Gestor de salas (carga/descarga de GLB, spawn points `SPAWN_*`).
-- [ ] Menú de pausa: inventario (habilidades), mapa, opciones (controles, volumen, efectos PS1 on/off).
-- [ ] UI de "Archivo" final (HTML sobre el canvas), con navegación por teclado y mando.
-- [ ] Pantalla de título y pantalla de carga.
-- [ ] Soporte de mando (Gamepad API).
+- [x] Puertas `DOOR_<sala>` + transición con animación de puerta y precarga (se puede saltar al terminar de cargar; versión "rápida" en Opciones).
+- [x] Gestor de salas (carga/caché de GLB, precarga de salas vecinas, spawn points `SPAWN_*`).
+- [x] Menú de pausa: inventario (habilidades + archivos personales), mapa (salas → proyectos; abre fichas o viaja), opciones (controles, volumen, efectos PS1, animación de puertas).
+- [x] UI de "Archivo" final (HTML sobre el canvas), con navegación por teclado y mando; pasa a la ficha anterior/siguiente con Q/E o LB/RB.
+- [x] Pantalla de título y pantalla de carga.
+- [x] Soporte de mando (Gamepad API).
+- Segunda sala de prueba (`save-room`) con la máquina de escribir (contacto) y la libreta (curiosidades); libro con la bio en el hall.
 
 ### Fase 4 — Contenido
-- [ ] Añadir `room` a `projects.json` y crear `rooms.json`.
+- [x] Añadir `room` a `projects.json` y crear `rooms.json` (adelantado en la Fase 3).
 - [ ] Modelar y texturizar: Hall, Ala Unreal, Ala Unity, Laboratorio, Sala de juegos, Save room.
 - [ ] Representación de cada proyecto en su sala (objeto + textura con su portada en baja resolución).
 - [ ] TV con DemoReel en el Hall (miniatura PS1 → abre el video de YouTube en la UI).
@@ -163,7 +164,7 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 | `COL_*` | Colisión (invisible en el juego). |
 | `CAM_<n>` | Cámara fija (posición, rotación, FOV). `<n>` solo letras/números. |
 | `TRG_CAM_<n>` | Volumen que activa la cámara `<n>` cuando el jugador entra. Varios volúmenes para la misma cámara: `TRG_CAM_<n>_<sufijo>`. Solapar ~0.4 m con los vecinos (histéresis). |
-| `INT_<projectId>` | Objeto examinable ligado a un proyecto. Un hijo con el material `MAT_Cover` recibe la portada (reducida a 128×96 en el navegador). |
+| `INT_<id>` | Objeto examinable ligado a un proyecto, o a un documento del perfil: `about`, `contact`, `trivia`. Un hijo con el material `MAT_Cover` recibe la portada (reducida a 128×96 en el navegador). |
 | `DOOR_<roomId>` | Puerta hacia otra sala. |
 | `SPAWN_<fromRoomId>` | Punto de aparición al entrar desde esa sala (Empty; su flecha +Z indica hacia dónde mira). `SPAWN_default` para el inicio. |
 
@@ -198,7 +199,7 @@ src/
   ui/             Título, archivo, pausa, mapa, modo lista
   data/           projects.json, profile.json, rooms.json
 art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
-  rooms/          build_test_room.py (genera la sala de prueba) y los .blend de las salas
+  rooms/          build_test_room.py (genera las salas de prueba) y los .blend de las salas
 ```
 
 ## 8. Riesgos
@@ -219,6 +220,14 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 - ¿Música propia o CC0?
 
 ## 10. Registro de decisiones
+- **2026-10-09** — Fase 3: UI como pila de capas (`src/ui/uiStack.js`): título, pausa y fichas se
+  apilan; con alguna abierta el juego se pausa y la capa de arriba recibe la navegación (teclado nativo
+  + mando traducido a acciones). Opciones en `src/core/settings.js` (localStorage). Se quitaron los atajos
+  `C`/`P` del prototipo (ahora en Opciones); quedan `Esc`/`Tab` menú, `M` mapa, `I` inventario y `F3`
+  depuración. Puertas: transición 3D propia (`src/world/doorTransition.js`, ~2.3 s) o fundido corto;
+  con `prefers-reduced-motion` la corta es la predeterminada. `INT_` acepta documentos del perfil
+  (`about`, `contact`, `trivia`). Las salas sin modelo aparecen como "Próximamente" en el mapa y sus
+  puertas dicen que están cerradas. El volumen se guarda pero aún no hay audio (Fase 6).
 - **2026-10-09** — Fase 2 (prototipo): render PS1 en dos pasos (`src/render/`): escena a 240 px de alto
   (ancho según la ventana) en un render target *HalfFloat*, y post-proceso a 15 bits con el dithering 4×4
   de la consola; *vertex snapping* (rejilla = resolución/1.5) y mapeo afín inyectados con

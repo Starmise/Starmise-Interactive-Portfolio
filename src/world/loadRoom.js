@@ -10,12 +10,16 @@ import { CollisionWorld } from './collision.js';
  *   COL_*            → colisión (se oculta)
  *   CAM_<n>          → cámara fija
  *   TRG_CAM_<n>[_x]  → volumen(es) que activan CAM_<n> (se ocultan)
- *   INT_<projectId>  → objeto examinable; sus mallas con material MAT_Cover reciben la portada
- *   SPAWN_<nombre>   → punto de aparición (Empty; su flecha +Z de Blender indica la dirección)
- *   DOOR_<roomId>    → puerta (se recoge, la lógica llega en la Fase 3)
+ *   INT_<id>         → objeto examinable: proyecto de projects.json o documento del perfil
+ *                      (about, contact, trivia); las mallas con MAT_Cover reciben la portada
+ *   DOOR_<roomId>    → puerta hacia otra sala
+ *   SPAWN_<roomId>   → punto de aparición al llegar desde esa sala (SPAWN_default al inicio)
+ *
+ * `resolve(id)` traduce el id de un INT_ a { kind, label, project?, document() } o null.
+ * `doorLabel(roomId)` da el nombre visible de la sala de destino de una puerta.
  */
-export async function loadRoom(url, { projects = [], baseUrl = './' } = {}) {
-  const gltf = await new GLTFLoader().loadAsync(url);
+export async function loadRoom(url, { resolve = () => null, doorLabel = (id) => id, baseUrl = './', manager } = {}) {
+  const gltf = await new GLTFLoader(manager).loadAsync(url);
   const root = gltf.scene;
   root.updateMatrixWorld(true);
 
@@ -23,16 +27,16 @@ export async function loadRoom(url, { projects = [], baseUrl = './' } = {}) {
     root,
     cameras: new Map(), // n → PerspectiveCamera
     triggers: [], // { cameraId, mesh, box (local), inverse }
-    interactables: [], // { id, project, object, box (world) }
+    interactables: [], // { kind, id, label, object, box (world), document?, project?, roomId? }
     spawns: new Map(), // nombre → { position, yaw }
-    doors: [],
     helpers: [], // COL_/TRG_ para el modo depuración
+    doorTexture: null,
     collision: null,
   };
 
   const colliders = [];
-  const byProject = new Map(projects.map((p) => [p.id, p]));
   const materialCache = new Map();
+  const pending = [];
 
   root.traverse((obj) => {
     const name = obj.name;
@@ -66,27 +70,42 @@ export async function loadRoom(url, { projects = [], baseUrl = './' } = {}) {
       room.spawns.set(m[1], { position, yaw: Math.atan2(dir.x, dir.z) });
       return;
     }
-    if ((m = name.match(/^DOOR_(\w[\w-]*)$/))) {
-      room.doors.push({ roomId: m[1], object: obj });
+    if ((m = name.match(/^DOOR_([a-z0-9-]+)$/))) {
+      const roomId = m[1];
+      pending.push(() => room.interactables.push({
+        kind: 'door',
+        id: roomId,
+        roomId,
+        label: doorLabel(roomId),
+        object: obj,
+        box: new THREE.Box3().setFromObject(obj),
+      }));
     }
     if ((m = name.match(/^INT_([a-z0-9-]+)$/))) {
-      const project = byProject.get(m[1]);
-      if (!project) console.warn(`[room] ${name}: no existe el proyecto "${m[1]}" en projects.json`);
-      room.interactables.push({ id: m[1], project, object: obj, box: new THREE.Box3().setFromObject(obj) });
+      const id = m[1];
+      const info = resolve(id);
+      if (!info) console.warn(`[room] ${name}: "${id}" no es un proyecto ni un documento del perfil`);
+      else pending.push(() => room.interactables.push({ ...info, id, object: obj, box: new THREE.Box3().setFromObject(obj) }));
     }
 
     if (obj.isMesh) {
       obj.material = convertMaterial(obj.material, materialCache);
-      obj.castShadow = false;
-      obj.receiveShadow = false;
+      if (!room.doorTexture && obj.material.name === 'MAT_Door') room.doorTexture = obj.material.map;
     }
   });
+  pending.forEach((fn) => fn());
 
-  // Portadas: cada INT_ con un hijo de material MAT_Cover recibe su imagen en baja resolución.
+  // Portadas: cada INT_ de proyecto con un hijo de material MAT_Cover recibe su imagen en baja.
   await Promise.all(
     room.interactables.map(async (it) => {
       if (!it.project?.cover) return;
-      const tex = await loadCoverTexture(baseUrl + it.project.cover);
+      let tex;
+      try {
+        tex = await loadCoverTexture(baseUrl + it.project.cover);
+      } catch (err) {
+        console.warn('[room] no se pudo cargar la portada', it.project.cover, err);
+        return;
+      }
       it.object.traverse((o) => {
         if (o.isMesh && o.material?.name === 'MAT_Cover') {
           o.material = o.material.clone();

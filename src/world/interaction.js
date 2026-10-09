@@ -5,12 +5,12 @@ const REACH = 0.75;
 const MIN_FACING = 0.35; // coseno: ~70° a cada lado
 
 /**
- * Elige el objeto INT_ que el jugador puede examinar: cerca (respecto a su caja, no a su
+ * Elige el objeto INT_ o la puerta DOOR_ con la que el jugador puede interactuar: cerca (respecto a su caja, no a su
  * centro) y más o menos de frente. Devuelve la entrada de `room.interactables` o null.
  */
 export class Interaction {
   constructor(interactables) {
-    this.items = interactables.filter((it) => it.project);
+    this.items = interactables;
   }
 
   find(player) {

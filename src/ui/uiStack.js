@@ -1,0 +1,127 @@
+/**
+ * Pila de capas de UI (título, pausa, ficha…). Mientras haya alguna abierta, el juego
+ * está en pausa y la capa superior recibe la navegación, venga del teclado o del mando.
+ *
+ * Una capa es un objeto con:
+ *   el                 elemento raíz (se usa para buscar elementos enfocables)
+ *   onAction(action)   opcional; devuelve true si gestionó la acción
+ *                      acciones: up, down, left, right, confirm, back, tabPrev, tabNext, pause
+ *   onShow / onHide    opcionales
+ *
+ * Por defecto: arriba/izquierda = elemento anterior, abajo/derecha = siguiente,
+ * confirm = clic en el elemento enfocado, back = cerrar la capa.
+ */
+export class UiStack {
+  constructor() {
+    this.layers = [];
+    this.onChange = null; // (isOpen) => void
+
+    // Teclado en los menús. Tab y Enter/Espacio los maneja el navegador de forma nativa.
+    window.addEventListener('keydown', (e) => {
+      if (!this.top || e.defaultPrevented) return;
+      const action = KEY_ACTIONS[e.code];
+      if (!action) return;
+      if (this.dispatch(action)) e.preventDefault();
+    });
+  }
+
+  get top() {
+    return this.layers[this.layers.length - 1] ?? null;
+  }
+
+  get isOpen() {
+    return this.layers.length > 0;
+  }
+
+  push(layer) {
+    if (this.layers.includes(layer)) return;
+    this.layers.push(layer);
+    layer.returnFocus = document.activeElement;
+    layer.onShow?.();
+    if (this.layers.length === 1) this.onChange?.(true);
+  }
+
+  pop(layer = this.top) {
+    const i = this.layers.indexOf(layer);
+    if (i < 0) return;
+    this.layers.splice(i, 1);
+    layer.onHide?.();
+    if (layer.returnFocus?.isConnected) layer.returnFocus.focus?.({ preventScroll: true });
+    if (!this.layers.length) this.onChange?.(false);
+  }
+
+  clear() {
+    while (this.layers.length) this.pop();
+  }
+
+  /** Despacha una acción a la capa superior. Devuelve true si alguien la gestionó. */
+  dispatch(action, fromPad = false) {
+    const layer = this.top;
+    if (!layer) return false;
+    // Deslizadores: izquierda/derecha cambian el valor (el teclado lo hace de forma nativa).
+    const el = document.activeElement;
+    if (el?.type === 'range' && (action === 'left' || action === 'right')) {
+      if (!fromPad) return false;
+      if (action === 'left') el.stepDown();
+      else el.stepUp();
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      return true;
+    }
+    if (layer.onAction?.(action)) return true;
+    switch (action) {
+      case 'up':
+      case 'left':
+        return moveFocus(layer.el, -1);
+      case 'down':
+      case 'right':
+        return moveFocus(layer.el, 1);
+      case 'confirm': {
+        const el = document.activeElement;
+        if (el && layer.el.contains(el) && el !== layer.el && typeof el.click === 'function') {
+          el.click();
+          return true;
+        }
+        return false;
+      }
+      case 'back':
+        if (layer.closable === false) return false;
+        this.pop(layer);
+        return true;
+      default:
+        return false;
+    }
+  }
+}
+
+const KEY_ACTIONS = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  Escape: 'back',
+  Backspace: 'back',
+  KeyQ: 'tabPrev',
+  KeyE: 'tabNext',
+  PageUp: 'tabPrev',
+  PageDown: 'tabNext',
+};
+
+export function focusables(root) {
+  return [...root.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter((el) => !el.closest('[hidden]') && el.getClientRects().length > 0);
+}
+
+export function moveFocus(root, delta) {
+  const list = focusables(root);
+  if (!list.length) return false;
+  const i = list.indexOf(document.activeElement);
+  const next = i < 0 ? (delta > 0 ? 0 : list.length - 1) : (i + delta + list.length) % list.length;
+  list[next].focus();
+  list[next].scrollIntoView?.({ block: 'nearest' });
+  return true;
+}
+
+export function focusFirst(root) {
+  const list = focusables(root);
+  (list[0] ?? root).focus({ preventScroll: true });
+}

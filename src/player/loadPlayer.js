@@ -11,8 +11,8 @@ import { toPs1Material } from '../render/ps1Material.js';
  * (ver PLAN.md §5). Este código no necesita cambios si se respetan esos nombres; mientras
  * falten, el controlador improvisa Idle y Run a partir de Walk.
  */
-export async function loadPlayer(url) {
-  const gltf = await new GLTFLoader().loadAsync(url);
+export async function loadPlayer(url, manager) {
+  const gltf = await new GLTFLoader(manager).loadAsync(url);
   const model = gltf.scene;
 
   model.traverse((obj) => {

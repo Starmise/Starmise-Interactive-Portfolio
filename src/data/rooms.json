@@ -1,0 +1,38 @@
+[
+  {
+    "id": "hall",
+    "name": "Hall principal",
+    "description": "Vitrina con los proyectos destacados.",
+    "model": "models/rooms/test_room.glb"
+  },
+  {
+    "id": "unreal-wing",
+    "name": "Ala Unreal",
+    "description": "Proyectos hechos en Unreal Engine.",
+    "model": null
+  },
+  {
+    "id": "unity-wing",
+    "name": "Ala Unity",
+    "description": "Proyectos hechos en Unity.",
+    "model": null
+  },
+  {
+    "id": "lab",
+    "name": "Laboratorio",
+    "description": "Motores y gráficos en C++.",
+    "model": null
+  },
+  {
+    "id": "game-room",
+    "name": "Sala de juegos",
+    "description": "Game jams y prototipos.",
+    "model": null
+  },
+  {
+    "id": "save-room",
+    "name": "Sala de guardado",
+    "description": "Contacto y curiosidades.",
+    "model": "models/rooms/save_room.glb"
+  }
+]
