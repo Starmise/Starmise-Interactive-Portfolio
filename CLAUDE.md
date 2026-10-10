@@ -7,7 +7,10 @@ Todo el contenido y la comunicación con el usuario son **en español**.
 > (`Starmise/About-Me-Website`, estética *Persona 5*) queda **solo como referencia de
 > lectura**: no se edita ni se hace push ahí. Todo el trabajo nuevo va en este repo.
 
-- **Repo:** https://github.com/Starmise/Starmise-Interactive-Portfolio (rama `main`)
+- **Repo:** https://github.com/Starmise/Starmise.github.io (rama `main`; antes se llamaba
+  `Starmise-Interactive-Portfolio` y GitHub redirige el nombre viejo)
+- **Sitio:** https://starmise.github.io/ (GitHub Pages con el workflow `.github/workflows/deploy.yml`;
+  en Settings → Pages la fuente debe ser **GitHub Actions**)
 - **Copia local del usuario (Windows):**
   `C:\Users\Lu1sR\Documents\VisualStudioProjects\Starmise-Interactive-Portfolio`
 - **Portafolio original (referencia):** https://github.com/Starmise/About-Me-Website —
@@ -41,22 +44,26 @@ Resumen de decisiones: tercera persona con cámaras fijas · Three.js vanilla ·
 (`base: './'`) · salas modeladas en Blender con convención de nombres (`COL_`, `CAM_`,
 `TRG_CAM_`, `INT_<id>`, `DOOR_`, `SPAWN_`) · todo el texto sale de `src/data/` ·
 GitHub Pages vía Actions (`.github/workflows/deploy.yml`: `npm ci` → `npm run build` → sube `dist/`).
-No usar assets, logos, fuentes ni sonidos de Capcom/Resident Evil: solo se evoca el estilo.
+No usar assets, logos, fuentes ni sonidos de Capcom/Resident Evil: solo se evoca el estilo. Tampoco
+música u otros sonidos con copyright (p. ej. OST comerciales): todo el audio es original (`src/audio/`).
 
 ## Estado actual
 
-Fases 0–5 completadas (salvo la textura final del personaje, la galería real y medir 60 fps en un
-portátil real). Hay **seis salas**
+Fases 0–6 completadas en código (pendientes del usuario abajo). Hay **seis salas**
 (mansión): Hall (vitrina con los 4 destacados, diario con la bio, TV con el DemoReel), Ala Unreal
 (cuadros), Ala Unity (escritorios con CRT), Laboratorio (estaciones CRT), Sala de juegos (máquinas
 arcade) y Sala de guardado (contacto y curiosidades); cada proyecto es un objeto con su portada. Hay
 título con carga, menú de pausa (inventario, mapa, opciones), fichas navegables (con galería y video),
 soporte de mando y táctil, **modo lista** (HTML sin 3D; `#lista` en la URL), sugerencia de modo lista en
-equipos lentos y movimiento reducido. **Pendiente (TODO del usuario):** textura final del personaje y
+equipos lentos, movimiento reducido, **audio original** (música continua "Nocturno de la mansión",
+ambiente por sala, pasos según el suelo, puertas y menús; todo sintetizado, sin archivos) y meta tags /
+Open Graph / favicon. **Pendiente (TODO del usuario):** textura final del personaje y
 exportar `player.glb` desde Blender con `Idle`/`Walk`/`Run` (PLAN.md §5) — el actual es **provisional**
 (solo `Walk`); imágenes finales de los proyectos e imágenes reales para `profile.gallery` (hoy
-`GalleryExample*`); comprobar 60 fps con F3 en un portátil medio. Siguiente: revisar las salas con el
-usuario y la Fase 6 (audio, meta tags, pruebas en navegadores, publicación).
+`GalleryExample*`); comprobar 60 fps con F3 en un portátil medio; probar en Firefox, Safari y un
+teléfono real; cambiar en Settings → Pages la fuente a GitHub Actions y hacer push; enlazar el sitio
+nuevo desde el portafolio clásico; rehacer `public/og-image.jpg` cuando esté el personaje final.
+Siguiente: revisar las salas y el audio con el usuario.
 
 Controles: WASD/flechas o stick mover · Shift/X correr · E/Enter/A examinar y abrir puertas ·
 Esc/Tab/Start menú · M/Select mapa · I inventario · Q/E o LB/RB pestañas y fichas · F3 (o `º`)
@@ -73,28 +80,41 @@ npm run build    # genera dist/
 npm run preview  # sirve dist/ para probar el build
 npm run images   # regenera public/img/*.webp y public/img/thumb/ desde art/img/ (usa sharp)
 npm run budget   # tras el build: carga inicial y triángulos/draw calls por sala vs. presupuestos
+npm run icons    # regenera los PNG del favicon/manifest desde public/favicon.svg (usa sharp)
 blender -b -P art/rooms/build_rooms.py [-- hall lab …]   # regenera las salas (.blend + .glb)
 ```
 
 ## Estructura
 
 ```
-index.html         Punto de entrada de Vite (HUD + contenedor de UI)
-vite.config.js     base './', salida en dist/
+index.html         Punto de entrada de Vite (HUD + contenedor de UI, iconos y manifest)
+vite.config.js     base './', salida en dist/; plugin que inyecta título, descripción, Open Graph y
+                   schema.org desde `profile.site`
 package.json       three + three-mesh-bvh + vite (+ sharp, solo para npm run images)
 scripts/optimize-images.mjs  art/img/* → public/img/<nombre>.webp (≤1280 px) + public/img/thumb/ (≤256 px)
 scripts/check-budgets.mjs    npm run budget: presupuestos de la Fase 5
+scripts/make-icons.mjs       npm run icons: favicon-32, apple-touch-icon, icon-192/512 desde favicon.svg
 .github/workflows/deploy.yml  Deploy a GitHub Pages
 public/            Se copia tal cual a dist/
   img/             Imágenes WebP generadas (~1.2 MB); los JSON las referencian como img/<nombre>.webp
   img/thumb/       Miniaturas ≤256 px (texturas de portada en las salas, galerías)
   models/player.glb  Personaje (PROVISIONAL: textura placeholder, solo la caminata "Walk")
   models/rooms/    hall, unreal_wing, unity_wing, lab, game_room, save_room (.glb, de build_rooms.py)
+  favicon.svg      Estrella pixel art 16×16 (fuente de los PNG de iconos)
+  og-image.jpg     Vista previa de enlaces 1200×630 (captura del título)
+  manifest.webmanifest  Nombre, colores e iconos para "añadir a la pantalla de inicio"
 src/
   main.js          Arranque ligero: #lista o sin WebGL → modo lista; si no, importa game.js
   shell.js         Compartido arranque/juego sin Three.js: capacidades del equipo y modo lista (#lista)
   game.js          El juego y su bucle: título, salas, transiciones, interacción, pausa
   style.css        HUD, título, menú de pausa, fichas "Archivo", táctil y modo lista
+  audio/audio.js   Motor de audio (Web Audio): desbloqueo con el primer gesto, buses y volúmenes,
+                   pausa/video/modo lista/pestaña oculta, salas (ambiente, ánimo, suelo, reverb)
+  audio/music.js   Música original "Nocturno de la mansión" (generada en vivo; ánimos tense/calm)
+  audio/ambience.js  Ambientes por sala (hall, gallery, studio, lab, arcade, save)
+  audio/sfx.js     Efectos sintetizados: pasos por suelo, puertas, reloj, crujidos, interfaz
+  audio/uiSounds.js  Sonidos de menús conectados a la UiStack y a los clics (`data-sfx`)
+  audio/dsp.js     Utilidades de síntesis (PRNG, biquad, ruidos, reverberación)
   core/input.js    Teclado + mando (Gamepad API) + táctil: acciones de juego y de menú
   core/settings.js Opciones del jugador (localStorage) con suscripción a cambios
   core/motion.js   Movimiento reducido (sistema u opción) → clase reduce-motion
@@ -124,7 +144,8 @@ src/
   data/
     projects.json  FUENTE ÚNICA de los proyectos (22, con su sala en `room`)
     profile.json   Bio, estudio, DemoReel, habilidades, "qué hago", curiosidades, galería, contacto
-    rooms.json     Salas: nombre, descripción, GLB (null = aún no construida), niebla y luz ambiente
+    rooms.json     Salas: nombre, descripción, GLB (null = aún no construida), niebla, luz ambiente y
+                   sonido (ambience, floor, reverb, mood)
     README.md      Esquema de los JSON y script de validación
 art/character/     Fuentes del personaje (no se publican)
   PSX_Char_Male_Base.fbx            Personaje PS1 (19 huesos, caminata de Mixamo, sin textura)
@@ -154,8 +175,8 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
 - Las sesiones en la nube trabajan en la copia local desde una VM Linux: **no dejar
   `node_modules/` instalado desde ahí** (los binarios nativos de Vite/rolldown serían de Linux
   y `npm run dev` fallaría en Windows). Si se instala para probar, borrarlo al terminar.
-- La herramienta para escribir archivos en la copia local trata `.github/` como protegido:
-  el workflow lo coloca el usuario a mano.
+- La herramienta para copiar archivos a la copia local rechaza `.github/` (protegido). Truco: copiarlo
+  a la raíz (p. ej. `deploy.yml`) y moverlo con la terminal remota (`mv deploy.yml .github/workflows/`).
 - Los `.blend` de `art/rooms/` se guardaron con Blender 5.2; si tu Blender es más viejo y no lo abre, corre
   `art/rooms/build_rooms.py` desde tu Blender (pestaña Scripting) para regenerarlos. Ojo: el script
   reconstruye las salas desde cero; si editas un `.blend` a mano, exporta su GLB tú y no regeneres esa sala.
@@ -168,4 +189,13 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
   portafolio va en `src/data/` y aparece solo en el juego y en el modo lista.
 - En la nube, Chromium dibuja por software: el título muestra el aviso de "equipo lento" y a los ~10 s
   de juego aparece la sugerencia de modo lista. Para pruebas, guardar
-  `localStorage['starmise.settings'] = '{"perfHint":false}'` antes de cargar.
+  `localStorage['starmise.settings'] = '{"perfHint":false}'` antes de cargar. Como el render es lento y
+  el paso de tiempo se limita a 1/20 s, en la nube todo (puertas, pasos) va "a cámara lenta".
+- Audio: no hay archivos de sonido; todo se sintetiza (`src/audio/`, PLAN.md §6.5). El contexto de audio
+  no existe hasta el primer gesto, así que en pruebas automáticas hay que pulsar una tecla o tocar antes
+  de esperar sonido. `__game.audio.state` resume su estado; para escuchar la música fuera del juego se
+  renderiza con un `OfflineAudioContext`. Para cambiar el ambiente o el suelo de una sala basta con
+  `rooms.json`.
+- `public/og-image.jpg` es una captura de la pantalla de título a 1200×630 (Playwright con las fuentes
+  reales; el texto de "Pulsa Enter" se cambió por "Portafolio interactivo · Game Developer"). Rehacerla
+  cuando cambie el personaje o el Hall. Las URL de Open Graph son absolutas (`profile.site.url`).

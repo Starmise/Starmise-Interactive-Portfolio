@@ -22,6 +22,9 @@ export const CONTROL_MODES = { modern: 'Moderno', tank: 'Clásico (tanque)' };
 /**
  * Controlador del personaje: movimiento relativo a cámara (por defecto) o tipo tanque,
  * colisiones contra COL_* y máquina de estados de animación Idle/Walk/Run.
+ *
+ * Pasos: `onFootstep(corriendo)` se llama cuando un pie toca el suelo según la animación
+ * (los instantes de apoyo se detectan solos en cada clip, así que sirven con el GLB final).
  */
 export class PlayerController {
   constructor(player, { input, collision }) {
@@ -33,6 +36,7 @@ export class PlayerController {
     this.yaw = 0;
     this.speed = 0;
     this.frozen = false;
+    this.onFootstep = null; // (running) => void
 
     // Base de cámara "enganchada": al cambiar de cámara se conserva la dirección mientras
     // no se suelte o cambie el input (evita el giro brusco típico de las cámaras fijas).
@@ -109,8 +113,24 @@ export class PlayerController {
     }
 
     this.#updateAnimation(dt, running, turning);
+    const stepAction = this.state === 'idle' ? null : this.actions[this.state];
+    const before = stepAction?.time;
     this.mixer.update(dt);
+    if (stepAction) this.#checkFootsteps(stepAction, before);
     this.#sync();
+  }
+
+  /** ¿La animación de caminar/correr cruzó un instante de apoyo en este frame? */
+  #checkFootsteps(action, before) {
+    const contacts = this.contacts.get(action);
+    if (!contacts || !this.onFootstep || action.getEffectiveWeight() < 0.5) return;
+    const after = action.time;
+    if (after === before) return;
+    // El clip se repite: si el tiempo "dio la vuelta", el tramo recorrido son dos trozos.
+    const crossed = action.timeScale >= 0
+      ? (c) => (after >= before ? c > before && c <= after : c > before || c <= after)
+      : (c) => (after <= before ? c >= after && c < before : c < before || c >= after);
+    if (contacts.some(crossed)) this.onFootstep(this.state === 'run');
   }
 
   #updateModern(dt, x, y, running) {
@@ -195,6 +215,13 @@ export class PlayerController {
       this.actions.idle.timeScale = 0;
     }
 
+    // Instantes en que cada pie apoya, por clip (para los pasos).
+    this.contacts = new Map();
+    for (const key of ['walk', 'run']) {
+      const action = this.actions[key];
+      if (action) this.contacts.set(action, findFootContacts(this.model, this.mixer, action.getClip()));
+    }
+
     for (const action of Object.values(this.actions)) {
       if (!action) continue;
       action.enabled = true;
@@ -268,6 +295,49 @@ function findPassingPose(model, mixer, clip) {
   probe.stop();
   mixer.uncacheAction(probe.getClip());
   return best;
+}
+
+/**
+ * Instantes del clip en que cada pie llega al suelo: cuando su altura baja de un umbral
+ * cercano al mínimo. Si no se encuentran los huesos, se suponen dos pasos por ciclo.
+ */
+function findFootContacts(model, mixer, clip) {
+  const fallback = [0, clip.duration / 2];
+  const feet = [findBone(model, /foot_l$|LeftFoot$/i), findBone(model, /foot_r$|RightFoot$/i)];
+  if (!feet[0] || !feet[1]) return fallback;
+  const N = 48;
+  const probe = mixer.clipAction(clip.clone());
+  probe.play();
+  const heights = feet.map(() => []);
+  const p = new THREE.Vector3();
+  for (let i = 0; i < N; i++) {
+    probe.time = (clip.duration * i) / N;
+    mixer.update(0);
+    model.updateMatrixWorld(true);
+    feet.forEach((foot, f) => heights[f].push(foot.getWorldPosition(p).y));
+  }
+  probe.stop();
+  mixer.uncacheAction(probe.getClip());
+
+  const times = [];
+  for (const h of heights) {
+    const min = Math.min(...h);
+    const max = Math.max(...h);
+    if (max - min < 1e-4) return fallback;
+    const threshold = min + (max - min) * 0.2;
+    // Primer cruce hacia abajo del umbral (cíclico).
+    let found = -1;
+    for (let i = 0; i < N; i++) {
+      const prev = h[(i - 1 + N) % N];
+      if (prev > threshold && h[i] <= threshold) {
+        found = i;
+        break;
+      }
+    }
+    if (found < 0) found = h.indexOf(min);
+    times.push((clip.duration * found) / N);
+  }
+  return times;
 }
 
 function findBone(root, regex) {

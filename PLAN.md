@@ -30,7 +30,8 @@ licencia libre.
 | Diseño de niveles | Salas modeladas en **Blender** y exportadas como GLB, con objetos marcados por **convención de nombres** (ver §6). |
 | Datos | Todo el texto sale de `src/data/projects.json` y `profile.json`; nada escrito a mano en la escena. |
 | Controles | Por defecto **relativos a cámara** (modernos); **tank controls** como opción "Modo clásico". |
-| Hosting | GitHub Pages vía GitHub Actions. El usuario hace los push. |
+| Hosting | GitHub Pages vía GitHub Actions. Repo renombrado a `Starmise.github.io` → https://starmise.github.io/. El usuario hace los push. |
+| Audio | **Original y sintetizado en el navegador** (Web Audio): música, ambientes y efectos sin archivos de sonido. Nada de OST comerciales. |
 
 ## 3. Experiencia y mapeo del portafolio
 
@@ -71,7 +72,8 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 ### Fase 1 — Base del proyecto
 - [x] `package.json` con Vite + Three.js; `npm run dev` / `npm run build` funcionando.
 - [x] Reorganizar carpetas según §7 (mover `src/img` → `public/img`, el FBX y fuentes → `art/character/`).
-- [x] Workflow `.github/workflows/deploy.yml` (adaptado del original, con Vite y `dist/`).
+- [x] Workflow `.github/workflows/deploy.yml` (adaptado del original, con Vite y `dist/`). *(No llegó a
+      subirse al repo; se rehízo en la Fase 6.)*
 - [ ] **Personaje (TODO):** textura pintada + exportado a `public/models/player.glb` (ver §5).
   - [x] Provisional: `player.glb` convertido del FBX (escala 0.01, clip renombrado a `Walk`) con
         `art/character/PSX_Char_Male_Placeholder_256.png`, pintada a partir de la foto de referencia
@@ -133,11 +135,26 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
         triángulos). En la nube solo hay render por software (~9 fps), que no sirve para medir.
 
 ### Fase 6 — Pulido y lanzamiento
-- [ ] Audio: ambiente por sala, sonidos de puerta/pasos/menú (originales o CC0), silenciado hasta la primera interacción.
-- [ ] Meta tags / Open Graph / favicon.
+- [x] Audio: ambiente por sala, sonidos de puerta/pasos/menú, silenciado hasta la primera interacción
+      (`src/audio/`, ver §6.5). Música original "Nocturno de la mansión", continua en toda la mansión y
+      más calmada en la Sala de guardado. Opciones: Sonido (sí/no, también en el título), volumen
+      general, música y efectos.
+- [x] Meta tags / Open Graph / favicon: `profile.site` → `<title>`, descripción, Open Graph, tarjeta de
+      Twitter y schema.org (`Person`) con un plugin en `vite.config.js`; `public/og-image.jpg` (1200×630);
+      favicon pixel art (`public/favicon.svg` + PNG con `npm run icons`) y `manifest.webmanifest`.
 - [ ] Probar en Chrome, Firefox, Safari y móvil.
-- [ ] Publicar. Opcional: renombrar el repo a `Starmise.github.io` para servirlo en la raíz.
-- [ ] Enlazar la nueva versión desde el portafolio clásico.
+  - [x] Chromium (escritorio) y emulación de Pixel 7 / iPhone 13 con Playwright: título, audio (gesto,
+        pestaña oculta, modo lista, video), puertas, pasos, táctil, `#lista` sin descargar el juego.
+  - [ ] **(TODO del usuario)** Firefox, Safari (macOS o iPhone) y un teléfono real: en la nube solo hay
+        Chromium. Revisar sobre todo que el audio arranque al primer toque en iPhone (con el interruptor
+        de silencio apagado: iOS silencia el audio web con él).
+- [ ] Publicar.
+  - [x] Repo renombrado a `Starmise.github.io` (lo hizo el usuario) → el sitio vive en https://starmise.github.io/.
+  - [x] `.github/workflows/deploy.yml`: `npm ci` → `npm run build` → GitHub Pages (acciones con Node 24).
+  - [ ] **(TODO del usuario)** Settings → Pages → Build and deployment → Source: **GitHub Actions** (hoy
+        publica la rama tal cual, que sirve el código sin compilar). Luego push a `main`.
+- [ ] **(TODO del usuario)** Enlazar la nueva versión desde el portafolio clásico (`About-Me-Website`, que
+      Claude no edita): un botón o aviso hacia https://starmise.github.io/.
 
 ## 5. Pipeline del personaje
 
@@ -237,19 +254,44 @@ comprueba (y la carga inicial).
 - Capa HTML/CSS sobre el canvas (accesible, seleccionable, fácil de estilizar).
 - Tipografía pixel/monoespaciada con licencia libre (p. ej. de Google Fonts), estilo "documento mecanografiado" para las fichas.
 
+### 6.5 Audio (Fase 6)
+Todo el audio es **original y se sintetiza en el navegador** con Web Audio: no hay archivos de sonido
+(0 kB de descarga, ~14 kB de JS con gzip). `src/audio/`:
+
+| Archivo | Qué hace |
+|---------|----------|
+| `audio.js` | Motor: crea el `AudioContext` en el primer gesto (tecla, clic o toque), buses música · ambiente · efectos · interfaz → limitador, volúmenes de Opciones (curva `v^1.6`), pausa (música con paso bajo y ambiente bajo), video del DemoReel (silencio), y suspende el contexto con la pestaña oculta, el modo lista o "Sonido: No". Programa con 1.2 s de antelación cada 200 ms. |
+| `music.js` | "Nocturno de la mansión": Re menor, 56 pulsos/min, un acorde cada 8 pulsos (~8.6 s). Colchón de sierras con paso bajo, bajo que se desliza, tema de caja de música (campanas FM con temblor de cinta) en las vueltas impares y notas sueltas en las pares; en modo tenso, viento, golpes metálicos, roces y retumbos lejanos. Ánimo `calm` (Sala de guardado): progresión en Fa mayor sin texturas. El cambio entra en el acorde siguiente. |
+| `ambience.js` | Ambientes por sala (`ambience` en `rooms.json`): `hall` (casa, viento, lluvia lejana, el reloj de pie, crujidos), `gallery`, `studio` (zumbido de 60 Hz y ventiladores de CRT), `lab` (servidores y discos duros), `arcade` (neón y arpegios lejanos en la escala de la música), `save` (lluvia). |
+| `sfx.js` | Efectos calculados una vez a buffers: pasos por suelo (`floor`: stone, wood, carpet, metal; 4 variantes), picaporte, chirrido, portazo, puerta cerrada, reloj, crujidos y la interfaz (cursor, aceptar, volver, abrir/cerrar, papel, ficha, error, "Pulsa Start"). |
+| `uiSounds.js` | Conecta la `UiStack` (abrir/cerrar capas, mover el cursor, pestañas) y los clics (`data-sfx` cambia el sonido de un botón). |
+| `dsp.js` | Utilidades: PRNG con semilla, biquad, ruidos, reverberación sintética, envolventes. |
+
+- Los **pasos** salen de la animación: `PlayerController` detecta en cada clip cuándo apoya cada pie
+  (altura de los huesos `foot_l`/`foot_r`), así que el GLB final con `Walk`/`Run` funciona sin tocar nada.
+- Las **puertas** lanzan sonidos en momentos de la animación (`DoorTransition.onCue`): picaporte,
+  chirrido, portazo; si se salta la animación el chirrido se corta.
+- Niveles por defecto (medidos): música ≈ -28 dBFS RMS, ambientes ≈ 12 dB por debajo, pasos con picos
+  ≈ -17 dBFS. Para ajustar: `MUSIC_TRIM` y `ambBus` en `audio.js`, `MOODS` en `music.js`, `AMBIENCES`.
+- Depuración: `__game.audio.state` (contexto, sala, ánimo, nivel) y F3 muestra el nivel de salida.
+- Para escuchar la música fuera del juego se puede renderizar con un `OfflineAudioContext`
+  (`new Score(ctx, ctx.destination).start(0); score.scheduleUntil(segundos)`).
+
 ## 7. Estructura objetivo del repo
 
 ```
 index.html
 vite.config.js
-scripts/          optimize-images.mjs (`npm run images`)
+scripts/          optimize-images.mjs (`npm run images`), make-icons.mjs (`npm run icons`), check-budgets.mjs
+.github/workflows/deploy.yml   Publicación en GitHub Pages
 public/
   img/            Imágenes WebP (≤1280 px) generadas desde art/img/; img/thumb/ miniaturas (≤256 px)
   models/         player.glb, salas *.glb
-  textures/       Texturas PS1 optimizadas
-  audio/
+  favicon.svg, favicon-32.png, apple-touch-icon.png, icon-192/512.png, manifest.webmanifest
+  og-image.jpg    Vista previa de enlaces (1200×630)
 src/
   main.js
+  audio/          Motor, música, ambientes y efectos (todo sintetizado; sin archivos de audio)
   core/           Renderer, game loop, input, carga de assets
   render/         Materiales y post-proceso PS1
   world/          Salas, cámaras, triggers, puertas, colisiones
@@ -276,9 +318,20 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 - Nombre del "juego" / título de la pantalla inicial.
 - ~~Ambientación~~ Mansión clásica con alas temáticas (decidido en la Fase 4; ajustable).
 - ~~¿El personaje representa a Starmise?~~ Sí: ropa de la foto de referencia (chaqueta acolchada con franjas roja y crema).
-- ¿Música propia o CC0?
+- ~~¿Música propia o CC0?~~ Propia: compuesta en código y sintetizada en el navegador (Fase 6).
 
 ## 10. Registro de decisiones
+- **2026-10-09** — Fase 6: el usuario propuso usar una pista de un OST comercial con copyright; se
+  descartó (riesgo de DMCA y contradice la regla de PI) y se compuso música **original** generada en el
+  navegador: sin archivos (0 kB), sin costuras de bucle y nunca suena igual. Una sola pista continua en
+  toda la mansión (no se reinicia al cruzar puertas); cada sala cambia el ánimo (`mood`), el ambiente
+  (`ambience`), el suelo de los pasos (`floor`) y la reverberación (`reverb`), todo en `rooms.json`.
+  El `AudioContext` se crea en el primer gesto; con la pestaña oculta, el modo lista o "Sonido: No" se
+  suspende. Opciones nuevas: `sound`, `music`, `sfx` (además de `volume`). Los textos para buscadores y
+  vistas previas viven en `profile.site` y los inyecta un plugin de Vite (una sola fuente). El repo se
+  renombró a `Starmise.github.io` y el workflow de Pages (que no estaba en el repo) se rehízo con
+  `checkout@v5`, `setup-node@v5`, `configure-pages@v6`, `upload-pages-artifact@v5`, `deploy-pages@v5`.
+  La imagen de Open Graph es una captura del título (rehacerla cuando esté el personaje final).
 - **2026-10-09** — Fase 5: el JS se divide en arranque (`main.js` + `shell.js`) y juego (`game.js`,
   antes `main.js`), para que el modo lista y los equipos sin WebGL no descarguen Three.js. Las salas
   vecinas ya no se precargan en el título sino al empezar a jugar (carga inicial 2.1 MB → 767 kB).

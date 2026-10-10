@@ -10,9 +10,11 @@ import { thumbUrl, youtubeEmbed } from '../core/assets.js';
  * incrusta al pulsar "Reproducir" y se quita al cambiar de documento o cerrar.
  */
 export class FileView {
-  constructor(root, stack, { baseUrl = './' } = {}) {
+  constructor(root, stack, { baseUrl = './', onMedia = null } = {}) {
     this.stack = stack;
     this.baseUrl = baseUrl;
+    this.onMedia = onMedia; // (sonando) => void: el juego calla su música mientras suena un video
+    this.mediaOn = false;
     this.sequence = null; // { docs: () => doc[], index }
 
     this.el = document.createElement('div');
@@ -59,11 +61,13 @@ export class FileView {
       },
       onHide: () => {
         this.f.video.replaceChildren(); // detiene el video si estaba sonando
+        this.#setMedia(false);
         this.el.classList.remove('is-open');
         this.el.hidden = true;
         this.sequence = null;
       },
       onAction: (action) => this.#onAction(action),
+      sounds: { open: 'file', close: 'close' },
     };
   }
 
@@ -118,8 +122,15 @@ export class FileView {
     return true;
   }
 
+  #setMedia(on) {
+    if (on === this.mediaOn) return;
+    this.mediaOn = on;
+    this.onMedia?.(on);
+  }
+
   #renderVideo(video, title) {
     const box = this.f.video;
+    this.#setMedia(false);
     box.hidden = !video;
     if (!video) return box.replaceChildren();
     const play = el('button');
@@ -138,6 +149,7 @@ export class FileView {
       frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
       frame.referrerPolicy = 'strict-origin-when-cross-origin';
       box.replaceChildren(frame);
+      this.#setMedia(true);
     });
     box.replaceChildren(play);
   }
@@ -209,9 +221,9 @@ export class FileView {
     const seq = this.sequence;
     if (seq && seq.docs.length > 1) {
       f.nav.innerHTML = `
-        <button type="button" class="file-doc__step" data-step="-1" aria-label="Archivo anterior">◂<span class="file-doc__keys"> Q/LB</span></button>
+        <button type="button" class="file-doc__step" data-step="-1" data-sfx="page" aria-label="Archivo anterior">◂<span class="file-doc__keys"> Q/LB</span></button>
         <span>${seq.index + 1} / ${seq.docs.length}</span>
-        <button type="button" class="file-doc__step" data-step="1" aria-label="Archivo siguiente"><span class="file-doc__keys">E/RB </span>▸</button>`;
+        <button type="button" class="file-doc__step" data-step="1" data-sfx="page" aria-label="Archivo siguiente"><span class="file-doc__keys">E/RB </span>▸</button>`;
     } else {
       f.nav.replaceChildren();
     }

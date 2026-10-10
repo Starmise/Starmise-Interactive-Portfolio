@@ -11,7 +11,10 @@ const DEFAULTS = {
   motion: 'auto', // 'auto' (según el sistema) | 'reduce' | 'full' — ver core/motion.js
   touch: 'auto', // controles táctiles: 'auto' (al tocar la pantalla) | 'on' | 'off'
   perfHint: true, // sugerir el modo lista si el juego va lento
-  volume: 0.8, // 0..1 (el audio llega en la Fase 6)
+  sound: true, // interruptor general del audio (no pierde los volúmenes)
+  volume: 0.8, // volumen general 0..1
+  music: 0.75, // música 0..1
+  sfx: 0.85, // efectos, ambiente e interfaz 0..1
 };
 
 const CHOICES = {

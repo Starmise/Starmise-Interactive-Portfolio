@@ -7,6 +7,10 @@ alternativa deben **leer de aquí** en lugar de tener textos escritos a mano en 
 - `rooms.json` — salas del juego: `id`, `name`, `description`, `model` (GLB en `public/`,
   o `null` si la sala aún no está construida: el mapa la muestra como "Próximamente"), `fog`
   (`[cerca, lejos]` en metros) y `ambient` (intensidad de la luz ambiente, 0.75 por defecto).
+  Sonido de cada sala: `ambience` (`hall`, `gallery`, `studio`, `lab`, `arcade` o `save`; ver
+  `src/audio/ambience.js`), `floor` para los pasos (`stone`, `wood`, `carpet`, `metal`), `reverb`
+  (segundos de reverberación, según el tamaño) y `mood` opcional (`calm` = la música se calma,
+  como en la Sala de guardado; por defecto `tense`).
 - `profile.json` — datos personales: bio, estudio, DemoReel, habilidades, "qué hago",
   curiosidades, galería y contacto (extraídos de `IndexP3.html` e `indexMin.html` del original).
 
@@ -51,6 +55,7 @@ Los textos `description` y `process` se migraron verbatim de las páginas origin
 | `gallery`     | Imágenes de la galería. **Ojo:** son marcadores de posición (`GalleryExample*`) heredados del original. |
 | `contact`     | Enlaces `{ label, type, url }`. |
 | `classicSite` | URL del portafolio original, para enlazarlo como "versión clásica". |
+| `site`        | Datos del sitio para buscadores y vistas previas de enlaces: `url` (dirección pública), `title`, `description`, `image` (imagen de 1200×630 en `public/`) e `imageAlt`. `vite.config.js` genera con ellos el `<title>`, la descripción, Open Graph y schema.org (con `name`, `title`, `studio` y los enlaces de `contact`). |
 
 ## Objetos de las salas
 

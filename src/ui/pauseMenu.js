@@ -44,6 +44,7 @@ export class PauseMenu {
       b.role = 'tab';
       b.className = 'pause__tab';
       b.dataset.tab = t.id;
+      b.dataset.sfx = 'page';
       b.textContent = t.label;
       b.addEventListener('click', () => this.show(t.id));
       this.tabsEl.append(b);
@@ -208,7 +209,11 @@ export class PauseMenu {
         'Reducido: sin temblor de polígonos, puertas con fundido y sin parpadeos.'),
       toggleRow('Controles táctiles', 'touch', [['auto', 'Automático'], ['on', 'Siempre'], ['off', 'Nunca']]),
       toggleRow('Sugerir modo lista si va lento', 'perfHint', [[true, 'Sí'], [false, 'No']]),
-      sliderRow('Volumen', 'volume', 'Aún no hay audio: llegará en una próxima versión.'),
+      toggleRow('Sonido', 'sound', [[true, 'Sí'], [false, 'No']],
+        'Música y efectos originales, sintetizados en el navegador.'),
+      sliderRow('Volumen general', 'volume'),
+      sliderRow('Música', 'music'),
+      sliderRow('Efectos', 'sfx', 'Pasos, puertas, ambiente de cada sala y menús.'),
     );
     frag.append(rows);
 
@@ -268,7 +273,9 @@ function toggleRow(label, key, options, note) {
 
 function sliderRow(label, key, note) {
   const row = h('label', null, 'opt-row');
-  row.append(h('span', label, 'opt-row__label'));
+  const labelEl = h('span', label, 'opt-row__label');
+  if (note) labelEl.append(h('small', note, 'opt-row__note'));
+  row.append(labelEl);
   const input = document.createElement('input');
   input.type = 'range';
   input.min = '0';
@@ -277,7 +284,6 @@ function sliderRow(label, key, note) {
   input.value = String(settings[key]);
   input.addEventListener('input', () => setSetting(key, Number(input.value)));
   row.append(input);
-  if (note) row.title = note;
   return row;
 }
 

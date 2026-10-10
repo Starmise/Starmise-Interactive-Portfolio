@@ -11,7 +11,23 @@ import { applyPs1, makeTextureCrisp } from '../render/ps1Material.js';
  *
  * Mientras `active` sea true, el bucle principal debe dibujar `scene` con `camera`.
  * mode: 'full' (animación completa, ~2.3 s) o 'short' (solo fundido).
+ *
+ * `onCue(nombre)` marca los momentos para el sonido: 'latch' (picaporte), 'creak' (la puerta
+ * se abre), 'shut' (se cierra detrás), 'skip' (se saltó la animación) y, en el modo corto,
+ * 'latch' + 'shutSoft'.
  */
+
+const CUES = {
+  full: [
+    { t: 0.15, name: 'latch' },
+    { t: 0.36, name: 'creak', skippable: true },
+    { t: 2.0, name: 'shut' },
+  ],
+  short: [
+    { t: 0, name: 'latch' },
+    { t: 0.14, name: 'shutSoft' },
+  ],
+};
 export class DoorTransition {
   constructor(fadeEl, loadingEl) {
     this.fadeEl = fadeEl;
@@ -21,6 +37,8 @@ export class DoorTransition {
     this.fadeTarget = 0;
     this.fadeSpeed = 4;
     this.job = null;
+    this.onCue = null;
+    this.cues = [];
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x000000);
@@ -53,6 +71,8 @@ export class DoorTransition {
     this.mode = mode;
     this.input = input;
     this.t = 0;
+    this.skipped = false;
+    this.cues = CUES[mode === 'full' ? 'full' : 'short'].map((c) => ({ ...c, done: false }));
     this.isReady = false;
     ready.then(
       () => (this.isReady = true),
@@ -92,11 +112,20 @@ export class DoorTransition {
     if (!this.job) return;
 
     this.t += dt;
+    for (const cue of this.cues) {
+      if (cue.done || this.t < cue.t) continue;
+      cue.done = true;
+      if (!(cue.skippable && this.skipped)) this.onCue?.(cue.name);
+    }
     const t = this.t;
     let finished;
     if (this.mode === 'full') {
       // Saltar la animación una vez cargada la sala.
-      if (this.isReady && t > 0.6 && this.input?.consumeAny?.()) this.t = Math.max(this.t, 2.0);
+      if (this.isReady && t > 0.6 && this.t < 2.0 && this.input?.consumeAny?.()) {
+        this.t = 2.0;
+        this.skipped = true;
+        this.onCue?.('skip');
+      }
       const open = smooth((t - 0.35) / 1.25);
       this.pivot.rotation.y = -THREE.MathUtils.degToRad(100) * open;
       const walk = smooth((t - 1.1) / 1.1);

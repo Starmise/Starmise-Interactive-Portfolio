@@ -22,9 +22,12 @@ import { Hud } from './ui/hud.js';
 import { TouchControls } from './ui/touchControls.js';
 import { SuggestDialog } from './ui/suggestDialog.js';
 import { resolveInteractable } from './ui/documents.js';
+import { audio } from './audio/audio.js';
+import { wireUiSounds } from './audio/uiSounds.js';
 
 // El juego: título, salas, transiciones, interacción y pausa. Lo carga main.js (en su propio
 // bloque de JS) salvo en el modo lista. Fase 5: táctil, movimiento reducido, rendimiento.
+// Fase 6: audio original (audio/), silencioso hasta la primera interacción.
 
 const BASE = import.meta.env.BASE_URL;
 const START_ROOM = 'hall';
@@ -33,6 +36,7 @@ const START_ROOM = 'hall';
 
 const input = new Input();
 const stack = new UiStack();
+wireUiSounds(stack, audio);
 const hud = new Hud();
 const touch = new TouchControls(document.getElementById('hud'), input);
 const uiRoot = document.getElementById('ui');
@@ -53,6 +57,7 @@ const ambient = new THREE.HemisphereLight(0x8790a8, 0x1c140e, 0.75); // `ambient
 scene.add(ambient);
 
 const transition = new DoorTransition(document.getElementById('fade'), document.getElementById('door-loading'));
+transition.onCue = (cue) => audio.door(cue);
 
 const manager = new THREE.LoadingManager();
 const roomManager = new RoomManager(rooms, {
@@ -63,7 +68,7 @@ const roomManager = new RoomManager(rooms, {
 
 // ---------- UI ----------
 
-const fileView = new FileView(uiRoot, stack, { baseUrl: BASE });
+const fileView = new FileView(uiRoot, stack, { baseUrl: BASE, onMedia: (on) => audio.setMedia(on) });
 const pause = new PauseMenu(uiRoot, stack, {
   fileView,
   projects,
@@ -101,6 +106,7 @@ stack.onChange = (open) => {
   input.setEnabled(!open);
   hud.setPrompt(null);
   touch.setTarget(null);
+  audio.setPaused(open && state === 'play'); // en pausa: música apagada y ambiente bajo
 };
 input.setEnabled(!stack.isOpen); // el título ya está abierto
 input.onDeviceChange = (device) => {
@@ -121,9 +127,11 @@ listView.layer.onAction = (action) => {
   }
   return false;
 };
+listView.layer.sounds = { open: null, close: null }; // el audio se suspende con el modo lista
 listView.subscribe((open) => {
   if (open) stack.push(listView.layer);
   else stack.pop(listView.layer);
+  audio.setListOpen(open);
 });
 
 onSettingsChange((key, value) => {
@@ -140,7 +148,7 @@ const timer = new THREE.Timer();
 timer.connect(document); // pausa el delta cuando la pestaña está oculta
 
 let state = 'title'; // 'title' | 'play'
-const world = { room: null, director: null, interaction: null, player: null, debug: false, stats: null, ps1 };
+const world = { room: null, director: null, interaction: null, player: null, debug: false, stats: null, ps1, audio };
 window.__game = world; // para depurar desde la consola
 
 // Rendimiento: FPS reales durante el juego; si no llega, sugerir el modo lista (una vez).
@@ -167,6 +175,7 @@ async function boot() {
   ]);
   world.player = new PlayerController(playerAsset, { input, collision: null });
   world.player.setMode(settings.mode);
+  world.player.onFootstep = (running) => audio.footstep(running);
   scene.add(world.player.root);
   enterRoom(room, 'default');
   title.setReady();
@@ -186,6 +195,7 @@ function enterRoom(room, fromId) {
   scene.fog.far = far;
   ambient.intensity = room.def.ambient ?? 0.75;
   for (const h of room.helpers) h.visible = world.debug;
+  audio.setRoom(room.def); // ambiente, ánimo de la música, suelo y reverberación
 
   const player = world.player;
   player.collision = room.collision;
@@ -209,6 +219,7 @@ function enterRoom(room, fromId) {
 async function goToRoom(id, fromId, mode = doorMode()) {
   if (transition.busy) return;
   if (!roomManager.isAvailable(id)) {
+    audio.door('locked');
     hud.flash('Está cerrada. Esta sala llegará pronto.');
     return;
   }
@@ -304,7 +315,8 @@ function updateStats(rawDt) {
     const p = world.player.position;
     hud.setStatus(
       `${stats.fps} fps · ${stats.calls} draw calls · ${stats.triangles} tris · ` +
-        `${world.room.id} · CAM_${world.director.activeId} · x ${p.x.toFixed(2)} z ${p.z.toFixed(2)}`,
+        `${world.room.id} · CAM_${world.director.activeId} · x ${p.x.toFixed(2)} z ${p.z.toFixed(2)} · ` +
+        `audio ${audio.ctx?.state ?? '—'} ${Number.isFinite(audio.level()) ? Math.round(audio.level()) + ' dB' : ''}`,
     );
   }
 }
