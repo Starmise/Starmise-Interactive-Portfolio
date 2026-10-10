@@ -61,5 +61,12 @@
     { "label": "Instagram", "type": "instagram", "url": "https://www.instagram.com/l_starmise?igsh=MXRtc3FkYWhvMG1tcg%3D%3D&utm_source=qr" },
     { "label": "Redes Sociales de Starmise", "type": "linktree", "url": "https://beacons.ai/starmise" }
   ],
-  "classicSite": "https://starmise.github.io/About-Me-Website/"
+  "classicSite": "https://starmise.github.io/About-Me-Website/",
+  "site": {
+    "url": "https://starmise.github.io/",
+    "title": "Starmise — Portafolio interactivo",
+    "description": "Portafolio interactivo de Luis Rosaldo (Starmise), Game Developer. Explora una mansión al estilo de los survival horror de PS1 y examina cada proyecto, o míralo todo en modo lista.",
+    "image": "og-image.jpg",
+    "imageAlt": "Pantalla de título del portafolio: «Starmise» sobre el hall de una mansión low-poly al estilo de PlayStation 1."
+  }
 }

@@ -5,7 +5,10 @@
     "description": "Vitrina con los proyectos destacados, el diario y el DemoReel.",
     "model": "models/rooms/hall.glb",
     "fog": [8, 22],
-    "ambient": 0.85
+    "ambient": 0.85,
+    "ambience": "hall",
+    "floor": "stone",
+    "reverb": 1.9
   },
   {
     "id": "unreal-wing",
@@ -13,7 +16,10 @@
     "description": "Galería de proyectos hechos en Unreal Engine.",
     "model": "models/rooms/unreal_wing.glb",
     "fog": [7, 20],
-    "ambient": 1.0
+    "ambient": 1.0,
+    "ambience": "gallery",
+    "floor": "wood",
+    "reverb": 1.5
   },
   {
     "id": "unity-wing",
@@ -21,7 +27,10 @@
     "description": "Estudio con los proyectos hechos en Unity.",
     "model": "models/rooms/unity_wing.glb",
     "fog": [6, 17],
-    "ambient": 1.15
+    "ambient": 1.15,
+    "ambience": "studio",
+    "floor": "carpet",
+    "reverb": 0.8
   },
   {
     "id": "lab",
@@ -29,7 +38,10 @@
     "description": "Motores y gráficos en C++.",
     "model": "models/rooms/lab.glb",
     "fog": [5, 15],
-    "ambient": 1.2
+    "ambient": 1.2,
+    "ambience": "lab",
+    "floor": "metal",
+    "reverb": 1.1
   },
   {
     "id": "game-room",
@@ -37,7 +49,10 @@
     "description": "Game jams y prototipos, en máquinas arcade.",
     "model": "models/rooms/game_room.glb",
     "fog": [5, 15],
-    "ambient": 0.9
+    "ambient": 0.9,
+    "ambience": "arcade",
+    "floor": "carpet",
+    "reverb": 0.9
   },
   {
     "id": "save-room",
@@ -45,6 +60,10 @@
     "description": "Contacto y curiosidades.",
     "model": "models/rooms/save_room.glb",
     "fog": [5, 12],
-    "ambient": 0.8
+    "ambient": 0.8,
+    "ambience": "save",
+    "floor": "wood",
+    "reverb": 0.6,
+    "mood": "calm"
   }
 ]

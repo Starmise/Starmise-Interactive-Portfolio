@@ -1,10 +1,14 @@
 import { focusFirst } from './uiStack.js';
+import { settings, setSetting, onSettingsChange } from '../core/settings.js';
 
 /**
  * Pantalla de carga + título. Mientras cargan los modelos muestra una barra de progreso;
  * cuando termina, "Pulsa Start" y luego el menú: Empezar, Modo lista, Controles, Versión
  * clásica. La sala de inicio se ve detrás, oscurecida. El modo lista se puede abrir ya
  * durante la carga. `setHint()` muestra un aviso bajo el menú (p. ej. equipo lento).
+ *
+ * El audio arranca con el primer gesto (normalmente "Pulsa Enter", que suena a campana).
+ * El menú tiene un interruptor de sonido para quien prefiera navegar en silencio.
  */
 export class TitleScreen {
   constructor(root, stack, { profile, onStart, onList }) {
@@ -27,12 +31,13 @@ export class TitleScreen {
           <button type="button" class="title__skip" data-act="list">¿Con prisa? Ver en modo lista</button>
         </div>
 
-        <button type="button" class="title__press" data-stage="press" data-start>Pulsa <kbd>Enter</kbd></button>
+        <button type="button" class="title__press" data-stage="press" data-start data-sfx="start">Pulsa <kbd>Enter</kbd></button>
 
         <nav class="title__menu" data-stage="menu" aria-label="Menú principal">
           <button type="button" data-act="start">Empezar</button>
           <button type="button" data-act="list">Modo lista <small>(sin 3D)</small></button>
           <button type="button" data-act="controls">Controles</button>
+          <button type="button" data-act="sound" data-sound></button>
           <a href="${escapeHtml(profile.classicSite)}" target="_blank" rel="noopener">Versión clásica ↗</a>
         </nav>
 
@@ -57,6 +62,9 @@ export class TitleScreen {
     this.bar = this.el.querySelector('.title__bar');
     this.startLabel = this.el.querySelector('[data-start]');
     this.hint = this.el.querySelector('.title__hint');
+    this.soundBtn = this.el.querySelector('[data-sound]');
+    this.#paintSound();
+    onSettingsChange((key) => key === 'sound' && this.#paintSound());
 
     this.el.querySelector('.title__press').addEventListener('click', () => this.#setStage('menu'));
     this.el.addEventListener('click', (e) => {
@@ -64,6 +72,7 @@ export class TitleScreen {
       if (act === 'start') this.#start();
       else if (act === 'list') this.onList?.();
       else if (act === 'controls') this.#setStage('controls');
+      else if (act === 'sound') setSetting('sound', !settings.sound);
       else if (act === 'back') this.#setStage('menu');
     });
 
@@ -72,7 +81,7 @@ export class TitleScreen {
       closable: false,
       onAction: (action) => {
         if (this.stage === 'press' && ['confirm', 'pause'].includes(action)) {
-          this.#setStage('menu');
+          this.el.querySelector('.title__press').click(); // mismo camino (y sonido) que con teclado
           return true;
         }
         if (this.stage === 'controls' && action === 'back') {
@@ -83,6 +92,7 @@ export class TitleScreen {
       },
       onHide: () => this.el.classList.add('is-hidden'),
       onShow: () => this.el.classList.remove('is-hidden'),
+      sounds: { open: null, close: null },
     };
     stack.push(this.layer);
     this.#setStage('loading');
@@ -125,6 +135,10 @@ export class TitleScreen {
   #start() {
     this.stack.pop(this.layer);
     this.onStart?.();
+  }
+
+  #paintSound() {
+    this.soundBtn.textContent = `Sonido: ${settings.sound ? 'Sí' : 'No'}`;
   }
 
   #setStage(stage) {

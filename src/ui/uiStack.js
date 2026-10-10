@@ -9,6 +9,11 @@
  *   onShow / onHide    opcionales
  *   nativeKeys         opcional; true = las flechas del teclado hacen lo de siempre en el
  *                      navegador (desplazar la página), p. ej. en el modo lista
+ *   sounds             opcional; { open, close } con el nombre del sonido de interfaz al
+ *                      abrir/cerrar la capa (null = ninguno). Por defecto 'open' / 'close'.
+ *
+ * `onSound(nombre)` se llama al abrir/cerrar capas, mover el cursor ('move') y pasar de
+ * pestaña o de ficha ('page'); el juego lo conecta al audio (audio/uiSounds.js).
  *
  * Por defecto: arriba/izquierda = elemento anterior, abajo/derecha = siguiente,
  * confirm = clic en el elemento enfocado, back = cerrar la capa.
@@ -17,6 +22,7 @@ export class UiStack {
   constructor() {
     this.layers = [];
     this.onChange = null; // (isOpen) => void
+    this.onSound = null; // (nombre) => void
 
     // Teclado en los menús. Tab y Enter/Espacio los maneja el navegador de forma nativa.
     window.addEventListener('keydown', (e) => {
@@ -41,6 +47,7 @@ export class UiStack {
     this.layers.push(layer);
     layer.returnFocus = document.activeElement;
     layer.onShow?.();
+    this.#layerSound(layer, 'open');
     if (this.layers.length === 1) this.onChange?.(true);
   }
 
@@ -49,6 +56,7 @@ export class UiStack {
     if (i < 0) return;
     this.layers.splice(i, 1);
     layer.onHide?.();
+    this.#layerSound(layer, 'close');
     // Devolver el foco a donde estaba; si ese elemento ya no se ve (p. ej. el título cambió de
     // pantalla mientras tanto), al primer elemento de la capa que queda arriba.
     const back = layer.returnFocus;
@@ -59,6 +67,11 @@ export class UiStack {
 
   clear() {
     while (this.layers.length) this.pop();
+  }
+
+  #layerSound(layer, kind) {
+    const name = layer.sounds && kind in layer.sounds ? layer.sounds[kind] : kind;
+    if (name) this.onSound?.(name);
   }
 
   /** Despacha una acción a la capa superior. Devuelve true si alguien la gestionó. */
@@ -74,14 +87,19 @@ export class UiStack {
       el.dispatchEvent(new Event('input', { bubbles: true }));
       return true;
     }
-    if (layer.onAction?.(action)) return true;
+    if (layer.onAction?.(action)) {
+      if (action === 'tabPrev' || action === 'tabNext') this.onSound?.('page');
+      return true;
+    }
     switch (action) {
       case 'up':
       case 'left':
-        return moveFocus(layer.el, -1);
       case 'down':
-      case 'right':
-        return moveFocus(layer.el, 1);
+      case 'right': {
+        const moved = moveFocus(layer.el, action === 'up' || action === 'left' ? -1 : 1);
+        if (moved) this.onSound?.('move');
+        return moved;
+      }
       case 'confirm': {
         const el = document.activeElement;
         if (el && layer.el.contains(el) && el !== layer.el && typeof el.click === 'function') {
