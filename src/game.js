@@ -283,9 +283,10 @@ function loop(time) {
       player.update(dt);
       director.update(player.position);
     }
-    world.room.update(dt); // pantallas animadas (siguen encendidas en pausa)
-
     const target = playing ? interaction.find(player) : null;
+    // Pantallas animadas (siguen encendidas en pausa) y brillo de las puertas según la cercanía.
+    world.room.update(dt, state === 'play' ? player.position : null, target);
+
     hud.setPrompt(target);
     touch.setTarget(target);
     if (target && input.consume('interact')) interact(target);

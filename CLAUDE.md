@@ -135,6 +135,8 @@ src/
   world/cameraDirector.js  Cámara activa según TRG_CAM_* (con histéresis)
   world/interaction.js   Qué INT_/DOOR_ está al alcance y de frente
   world/doorTransition.js  Animación de puerta / fundido que oculta la carga
+  world/doorMarkers.js   Pistas visuales de las puertas: rendija de luz, charco en el piso, marco que brilla
+                         (más al acercarse; late cuando es la que se abriría; rojo si la sala está cerrada)
   player/loadPlayer.js   Carga el GLB del personaje, materiales PS1, quita root motion horizontal
   player/playerController.js  Movimiento (moderno/tanque, analógico), colisión, animación, TUNING
   ui/uiStack.js    Pila de capas de UI y navegación (teclado/mando)
@@ -176,6 +178,8 @@ La estructura objetivo (con `public/`, `art/`, etc.) está en `PLAN.md` §7.
   heredados del original (aún no se muestran en el juego).
 - Imágenes: el original va en `art/img/`, se corre `npm run images` y el JSON usa `img/<nombre>.webp`.
   La miniatura (`img/thumb/<nombre>.webp`) se deriva sola con `thumbUrl()`.
+- Para copiar un material de una sala usar `clonePs1()` (render/ps1Material.js), no `.clone()`: Three.js no
+  copia `onBeforeCompile` y la copia perdería el snapping y el mapeo afín.
 - Con el *vertex snapping*, dos superficies a pocos cm "pelean" en profundidad. Por eso el cascarón de
   cada sala (`Room_Shell*`) se dibuja con *polygon offset*; para objetos pegados entre sí (que no sean
   el cascarón), separarlos ≥3 cm.

@@ -154,6 +154,9 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
   - [x] `.github/workflows/deploy.yml`: `npm ci` → `npm run build` → GitHub Pages (acciones con Node 24).
   - [ ] **(TODO del usuario)** Settings → Pages → Build and deployment → Source: **GitHub Actions** (hoy
         publica la rama tal cual, que sirve el código sin compilar). Luego push a `main`.
+- [x] **Puertas más visibles** (`src/world/doorMarkers.js`): luz que se cuela por debajo, charco de luz
+      en el piso y marco con brillo cálido; se intensifican al acercarse y laten cuando son el objetivo
+      de "Abrir". Hecho en código, sin regenerar las salas.
 - [x] **Idiomas (español / inglés):** pantalla de elección en la primera visita, interfaz y datos
       traducidos, cambio desde el título, Opciones y modo lista, `?lang=` en la URL (ver §6.6).
   - [ ] **(TODO del usuario)** Revisar la traducción al inglés de `src/data/en/` (bio, proyectos y
@@ -209,6 +212,7 @@ Se implementará añadiendo un campo `room` a cada proyecto en `projects.json` y
 | `INT_<id>` | Objeto examinable ligado a un proyecto, o a un documento del perfil: `about`, `contact`, `trivia`. Un hijo con el material `MAT_Cover` recibe la portada (reducida a 128×96 en el navegador). |
 | `DOOR_<roomId>` | Puerta hacia otra sala. |
 | `SPAWN_<fromRoomId>` | Punto de aparición al entrar desde esa sala (Empty; su flecha +Z indica hacia dónde mira). `SPAWN_default` para el inicio. |
+| `DOORFRAME_*`, `DOORKNOB_*` | Marco y picaporte (hijos de `DOOR_`). El juego les da un brillo cálido para que la puerta se distinga (world/doorMarkers.js). |
 | `Room_Shell*` | Piso, muros y techo. El juego los dibuja con *polygon offset* (un poco "detrás") para que lo pegado a ellos —cuadros, ventanas, alfombras— no parpadee con el *vertex snapping*. |
 
 `INT_<id>` también acepta los documentos del perfil `about`, `contact`, `trivia` y `demoreel` (este
@@ -345,6 +349,13 @@ art/              Fuentes (FBX, .blend, PSD, plantillas UV) — no se publican
 - ~~¿Música propia o CC0?~~ Propia: compuesta en código y sintetizada en el navegador (Fase 6).
 
 ## 10. Registro de decisiones
+- **2026-10-10** — **Puertas más visibles**: el usuario notó que no se distinguían (hoja café oscuro
+  sobre lambrín oscuro). Se resolvió en código (`world/doorMarkers.js`) para todas las salas sin
+  regenerar los GLB: rendija de luz bajo la hoja, charco de luz aditivo en el piso (degradado en
+  escalones, estilo de la época) y brillo emisivo en `DOORFRAME_*`/`DOORKNOB_*`. La intensidad sube al
+  acercarse y late cuando la puerta es el objetivo de interacción (sin latido con movimiento reducido);
+  las salas sin modelo darían una luz roja tenue. `room.update(dt, posiciónJugador, objetivo)`. Se
+  añadió `clonePs1()` porque `Material.clone()` perdía los efectos PS1 (afectaba también a las portadas).
 - **2026-10-10** — Portafolio **bilingüe (español / inglés)**, a petición del usuario: la primera
   visita muestra una pantalla de elección (bilingüe, con teclado, mando y táctil) y la elección se
   guarda en `settings.lang`. El idioma se decide antes de construir la UI (`main.js` → diccionario →
